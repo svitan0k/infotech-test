@@ -1,8 +1,11 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 
 const Homepage: React.FC = () => {
   return (
-    <div>Homepage</div>
+    <div>Homepage
+      <Link to={'/test/anotherpage?someval=2'}> test </Link>
+    </div>
   )
 }
 

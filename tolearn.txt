@@ -1,1 +1,1 @@
-How to efficiently serve static files(images,...) using node.js
+how to scale sockets
