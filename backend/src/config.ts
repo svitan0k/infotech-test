@@ -7,7 +7,7 @@ export interface envTS {
 
 const env: envTS = {
     dev: {
-        port: 3000,
+        port: 3001,
         evnName: 'dev env',
 
         user: 'admin',

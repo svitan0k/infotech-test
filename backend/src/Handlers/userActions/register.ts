@@ -12,8 +12,8 @@ export function registerHandler(registerData: dataObj, registerCallback: cbFunct
     if (acceptMethods.indexOf(registerData.method.toLowerCase()) > -1) {
         // validating request input
         const username = typeof (registerData.payload.username) === 'string' ? registerData.payload.username : false
-        const role = typeof (registerData.payload.role) === 'string' ? registerData.payload.role : false
         const password = typeof (registerData.payload.password) === 'string' ? registerData.payload.password : false
+        const role = typeof (registerData.payload.role) === 'string' ? registerData.payload.role : false
 
         const hashedPassword = Helpers.hash(password) // hashing user password here
 
@@ -27,8 +27,13 @@ export function registerHandler(registerData: dataObj, registerCallback: cbFunct
                             registerCallback(500, { error: error })
                         } else {
                             const newToken = createToken(result.rows[0].id)
-                            writeDBToken(newToken)
-                            registerCallback(200, { result: newToken })
+                            console.log(newToken)
+                            if (typeof (newToken) === 'object') {
+                                writeDBToken(newToken)
+                                registerCallback(200, { result: newToken })
+                            } else {
+                                registerCallback(500, {error: "Error while generating access token"})
+                            }
                         }
                     })
                 }

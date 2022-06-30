@@ -27,34 +27,38 @@ export function loginHandler(loginData: dataObj, loginCallback: cbFunction): voi
                 if ('rows' in result && result.rows.length > 0) { // "if existing user was found"
                     if (result.rows[0].password === Helpers.hash(password)) { // "if password for the user is correct"
                         const newToken = createToken(result.rows[0].id) // create new access token with 1 hour expiration time
-
-                        checkToken(result.rows[0].id).then((result) => { // search for existing access token
-                            if ('rows' in result && result.rows.length > 0) { // "if access token already exists, replace with a new one"
-                                updateToken(newToken, (result) => {
-                                    if (result) {
+                        if (typeof (newToken) === 'object') {
+                            checkToken(result.rows[0].id).then((result) => { // search for existing access token
+                                if ('rows' in result && result.rows.length > 0) { // "if access token already exists, replace with a new one"
+                                    updateToken(newToken, (result) => {
+                                        if (result) {
+                                            console.log('all good, loggin in')
+                                            loginCallback(200, { result: newToken })
+                                        } else {
+                                            loginCallback(500, { error: 'Error while updating user token' })
+                                        }
+                                    })
+                                } else { // "access token doesn't exist, provide a new one"
+                                    writeDBToken(newToken).then((result) => {
                                         loginCallback(200, { result: newToken })
-                                    } else {
-                                        loginCallback(500, { error: 'There was an error updating user token' })
-                                    }
-                                })
-                            } else { // "access token doesn't exist, provide a new one"
-                                writeDBToken(newToken).then((result) => {
-                                    loginCallback(200, { result: newToken })
-                                }).catch((error) => {
-                                    loginCallback(500, { error: 'Failded while creating new token' })
-                                })
-                            }
-                        }).catch((error) => {
-                            loginCallback(500, { error: 'Failed while looking up the token' })
-                        })
+                                    }).catch((error) => {
+                                        loginCallback(500, { error: 'Error while creating new token' })
+                                    })
+                                }
+                            }).catch((error) => {
+                                loginCallback(500, { error: 'Error while looking up the token' })
+                            })
+                        } else {
+                            loginCallback(500, { error: 'Error while generating new access token' })
+                        }
                     } else {
-                        loginCallback(401, { error: 'invalid credentials' })
+                        loginCallback(401, { error: 'Invalid credentials' })
                     }
                 } else {
-                    loginCallback(404, { error: 'user does not exist' })
+                    loginCallback(404, { error: 'Invalid credentials' }) // User does not exist
                 }
             }).catch((error) => {
-                loginCallback(400, { error: 'Provide all needed info' })
+                loginCallback(400, { error: 'Provide all required info' })
             })
         } else {
             loginCallback(405)

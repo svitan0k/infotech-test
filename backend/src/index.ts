@@ -78,6 +78,6 @@ const Server = (req: IncomingMessage, res: ServerResponse) => {
 
 
 const apiRouter: { [key: string]: Function } = {
-    'api/register': Handlers.register,
-    'api/login': Handlers.login,
+    'api/users/register': Handlers.register,
+    'api/users/login': Handlers.login,
 }
