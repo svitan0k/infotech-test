@@ -1,15 +1,18 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Box, Button, ButtonGroup, styled, } from '@mui/material'
+import { Box, Button, ButtonGroup, useMediaQuery, } from '@mui/material'
 import SendView from '../components/SendView'
 import InboxView from '../components/InboxView'
 import ChatView from '../components/ChatView'
 import ContactsView from '../components/ContactsView'
 
+
+
 const Homepage: React.FC = () => {
+	const screenWidth = useMediaQuery('(max-width: 600px)')
 
 	const navigate = useNavigate()
-
+	console.log(screenWidth)
 	const [currentView, setCurrentView] = useState<string>('inbox')
 	const [isLoggedIn, setIsLoggedIn] = useState<boolean>(!!sessionStorage.getItem('username'))
 
@@ -39,16 +42,6 @@ const Homepage: React.FC = () => {
 		})
 	}
 
-	const styledButtonGroup = styled(ButtonGroup)(({theme}) => ({
-		[theme.breakpoints.down('md')]: {
-			size: "small"
-		},
-
-		[theme.breakpoints.up('md')]: {
-			size: "large"
-		}
-	}))
-
 	return (
 		<Box sx={{
 			maxWidth: "35rem",
@@ -67,7 +60,8 @@ const Homepage: React.FC = () => {
 				}}
 				onClick={() => handleLogout()}
 			>Log out</Button>
-			<styledButtonGroup
+			<ButtonGroup
+				size = {screenWidth ? "small" : "large"}
 				id="button-group-list"
 				variant="outlined"
 				aria-label="text button group"
@@ -87,7 +81,7 @@ const Homepage: React.FC = () => {
 				<Button
 					id="contacts"
 					onClick={() => handleOptionChange('contacts')}>Contacts</Button>
-			</styledButtonGroup>
+			</ButtonGroup>
 			<Box sx={{
 				width: "100%",
 			}}>

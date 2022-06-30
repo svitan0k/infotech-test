@@ -36,35 +36,6 @@ const LoginPage: React.FC = () => {
         }
     }, [isLoggedIn, navigate])
 
-    // // username error check
-    // useEffect(() => {
-    //     if (renderCount.current > 2) {
-    //         if (username.length < 3) {
-    //             setUsernameError('Username must be more than 3 characters long')
-    //         } else if (username.match(/([^!"#$%&'()*+,-.:;<=>?@[\]^_`{|}~]*[!"#$%&'()*+,-.:;<=>?@[\]^_`{|}~])/)) {
-    //             setUsernameError('Username must not contain any special characters')
-    //         } else {
-    //             setUsernameError('')
-    //         }
-    //     } else {
-    //         renderCount.current += 1
-    //     }
-    // }, [username])
-
-    // // password error check
-    // useEffect(() => {
-    //     if (renderCount.current > 2) {
-    //         if (password && !password.match(/([^!"#$%&'()*+,-.:;<=>?@[\]^_`{|}~]*[!"#$%&'()*+,-.:;<=>?@[\]^_`{|}~])/)) {
-    //             setPasswordError('Password must contain at least one special character')
-    //         } else {
-    //             setPasswordError('')
-    //         }
-    //     } else {
-    //         renderCount.current += 1
-    //     }
-    // }, [password])
-
-
     const handleCloseSnackbar = (event: React.SyntheticEvent | Event, reason?: string) => {
         console.log(reason)
         setServerError('')
@@ -97,7 +68,7 @@ const LoginPage: React.FC = () => {
             setSubmitBtnTimeout(false)
             
             if (response.data.result) {
-                sessionStorage.setItem('username', response.data.result.user_id)
+                sessionStorage.setItem('username', response.data.result.username)
                 sessionStorage.setItem('token', response.data.result.tokenID)
                 setIsLoggedIn(true)
             }

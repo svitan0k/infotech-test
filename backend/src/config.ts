@@ -7,24 +7,31 @@ export interface envTS {
 
 const env: envTS = {
     dev: {
-        port: 3001,
+        httpPort: 3001,
+        httpsPort: 3002,
+        webSocketPort: 3003,
         evnName: 'dev env',
 
+        // db credentials
         user: 'admin',
         host: 'localhost',
-        database: 'infotech_test_db',
+        database: 'infotech',
         dbPassword: "789",
         dbPort: 5432,
         dbSecretKey: 'LbSxPF9WPYEpIqYWkk36Haq0RYNBEXuY',
     },
 
+    // the values are the same, but this is file is just for demonstration anyway
     prod: {
-        port: 5000,
+        httpPort: 3001,
+        httpsPort: 3002,
+        webSocketPort: 3003,
         evnName: 'prod env',
 
+        // db credentials
         user: 'admin',
         host: 'localhost',
-        database: 'infotech_test_db',
+        database: 'infotech',
         dbPassword: "789",
         dbPort: 5432,
         dbSecretKey: 'LbSxPF9WPYEpIqYWkk36Haq0RYNBEXuY',

@@ -5,7 +5,7 @@ import { Handlers } from './Handlers/HandlersRouter'
 import { Helpers } from './Helpers'
 import { serveFile } from './Handlers/fileServeAction/serveFile'
 import os from 'os'
-
+import * as io from 'socket.io'
 
 // defining threadpool size
 process.env.UV_THREADPOOL_SIZE = os.cpus().length.toString()
@@ -14,12 +14,12 @@ export interface dataObj {
     [key: string]: any,
 }
 
+// http servers
 http.createServer((req: IncomingMessage, res: ServerResponse) => {
     Server(req, res)
-}).listen(currentEnv.port, () => {
-    console.log(`Listening on port ${currentEnv.port}`)
+}).listen(currentEnv.httpPort, () => {
+    console.log(`Listening on port ${currentEnv.httpPort}`)
 })
-
 
 
 const Server = (req: IncomingMessage, res: ServerResponse) => {
@@ -81,3 +81,17 @@ const apiRouter: { [key: string]: Function } = {
     'api/users/register': Handlers.register,
     'api/users/login': Handlers.login,
 }
+
+
+
+
+// websocket servers
+// const socketServer = new io.Server(currentEnv.webSocketPort as number, {
+//     cors: {origin: "http://localhost:3000",}
+// })
+
+// socketServer.on('connection', (socket) => {
+//     socket.on('send-message', (message) => {
+//         console.log('sd')
+//     })
+// })

@@ -22,12 +22,11 @@ export function registerHandler(registerData: dataObj, registerCallback: cbFunct
                 if (result && 'rows' in result && result.rows.length > 0) { // "if user with such username already exists"
                     registerCallback(409, { error: "User already exists" })
                 } else { // otherwise, create a new user:
-                    pool.query(`INSERT INTO users (username, role, password) VALUES ('${username}', '${role}', '${hashedPassword}') RETURNING id`, (error, result) => {
+                    pool.query(`INSERT INTO users (username, role, password) VALUES ('${username}', '${role}', '${hashedPassword}') RETURNING id, username`, (error, result) => {
                         if (error) {
                             registerCallback(500, { error: error })
                         } else {
-                            const newToken = createToken(result.rows[0].id)
-                            console.log(newToken)
+                            const newToken = createToken(result.rows[0].id, result.rows[0].username)
                             if (typeof (newToken) === 'object') {
                                 writeDBToken(newToken)
                                 registerCallback(200, { result: newToken })
@@ -38,7 +37,7 @@ export function registerHandler(registerData: dataObj, registerCallback: cbFunct
                     })
                 }
             }).catch((error) => {
-                registerCallback(500, { error: "Error while search for users" })
+                registerCallback(500, { error: "Error while searching for users" })
             })
         } else {
             registerCallback(400, { error: "Provide the needed info" })

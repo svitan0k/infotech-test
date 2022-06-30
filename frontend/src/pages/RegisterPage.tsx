@@ -8,6 +8,7 @@ import { Link } from 'react-router-dom';
 
 export interface userResult {
     user_id: string,
+    username: string,
     tokenID: string,
     expires: string,
 }
@@ -101,7 +102,8 @@ const RegisterPage: React.FC = () => {
         }, config).then((response: { data: { error?: { message: string }, result?: userResult } }) => {
             setSubmitBtnTimeout(false)
             if (response.data.result) {
-                sessionStorage.setItem('username', response.data.result.user_id)
+                console.log('this is username for session', response.data.result.username)
+                sessionStorage.setItem('username', response.data.result.username)
                 sessionStorage.setItem('token', response.data.result.tokenID)
                 setIsLoggedIn(true)
             }
