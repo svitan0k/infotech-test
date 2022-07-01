@@ -2,21 +2,19 @@ import { Box, Button, FormControl, InputAdornment, InputLabel, MenuItem, Select,
 import React, { FormEvent, useEffect, useRef, useState } from 'react'
 import { Circle, Close, HorizontalRule, Visibility, VisibilityOff } from '@mui/icons-material/';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { Link } from 'react-router-dom';
+import { registerUser } from '../features/userInfoFeatures/userInfoStateSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../store';
 
-
-export interface userResult {
-    user_id: string,
-    username: string,
-    tokenID: string,
-    expires: string,
-}
 
 
 const RegisterPage: React.FC = () => {
 
     const navigate = useNavigate()
+    const dispatch = useDispatch<any>()
+
+    const { userInfo } = useSelector((state: RootState) => state.userInfo)
 
     const [username, setUsername] = useState<string>('')
     const [usernameError, setUsernameError] = useState<string>('')
@@ -26,23 +24,13 @@ const RegisterPage: React.FC = () => {
     const [submitBtnTimeout, setSubmitBtnTimeout] = useState<boolean>(false)
     const [serverError, setServerError] = useState<string>('')
     const [role, setRole] = useState<string>('')
-    const [isLoggedIn, setIsLoggedIn] = useState<boolean>(!!sessionStorage.getItem('username'))
     const renderCount = useRef<number>(0)
 
-
-    const handleClickShowPassword = () => {
-        setShowPassword(!showPassword);
-    };
-
-    const handleMouseDownPassword = (event: React.MouseEvent) => {
-        event.preventDefault();
-    };
-
     useEffect(() => {
-        if (isLoggedIn) {
+        if (userInfo.username) {
             navigate('/')
         }
-    }, [isLoggedIn, navigate])
+    }, [userInfo.username, navigate])
 
     // username error check
     useEffect(() => {
@@ -73,9 +61,25 @@ const RegisterPage: React.FC = () => {
     }, [password])
 
 
+    const handleClickShowPassword = () => {
+        setShowPassword(!showPassword);
+    };
+
+    const handleMouseDownPassword = (event: React.MouseEvent) => {
+        event.preventDefault();
+    };
+
     const handleCloseSnackbar = (event: React.SyntheticEvent | Event, reason?: string) => {
         console.log(reason)
         setServerError('')
+    }
+
+    const handleSubmit = async (e: FormEvent) => {
+        e.preventDefault()
+
+        setSubmitBtnTimeout(true)
+
+        dispatch(registerUser({ username: username, password: password, role: role }))
     }
 
     const snakbarAction = (
@@ -84,36 +88,6 @@ const RegisterPage: React.FC = () => {
         </>
     )
 
-    const handleSubmit = async (e: FormEvent) => {
-        e.preventDefault()
-
-        setSubmitBtnTimeout(true)
-
-        const config = {
-            headers: {
-                "Content-type": "application/json",
-            }
-        }
-
-        await axios.post('api/users/register', {
-            'username': username,
-            'password': password,
-            'role': role,
-        }, config).then((response: { data: { error?: { message: string }, result?: userResult } }) => {
-            setSubmitBtnTimeout(false)
-            if (response.data.result) {
-                console.log('this is username for session', response.data.result.username)
-                sessionStorage.setItem('username', response.data.result.username)
-                sessionStorage.setItem('token', response.data.result.tokenID)
-                setIsLoggedIn(true)
-            }
-        }).catch((error: any) => {
-            console.log(error)
-            console.log(error.response.data.error)
-            setServerError(error.response.data.error ? error.response.data.error : error.message)
-            setSubmitBtnTimeout(false)
-        })
-    }
 
     return (
         <Box sx={{
@@ -213,7 +187,6 @@ const RegisterPage: React.FC = () => {
                             <Select
                                 disableUnderline
                                 labelId="role-select"
-                                // id="demo-simple-select-filled"
                                 value={role}
                                 onChange={(e) => setRole(e.target.value)}
                             >

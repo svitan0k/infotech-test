@@ -1,42 +1,58 @@
 import React from 'react'
 import { IconButton, List, ListItem, ListItemButton, ListItemText, ListSubheader, } from '@mui/material'
 import { Comment, } from '@mui/icons-material'
+import { useDispatch, useSelector } from 'react-redux'
+import { RootState } from '../store'
+import { openChat } from '../features/chatFeatures/chatStateSlice'
 
 
-const InboxView: React.FC = () => {
+interface InboxViewTS {
+    handleOptionChange: Function,
+}
+
+const InboxView: React.FC<InboxViewTS> = ({ handleOptionChange }) => {
+
+    const dispatch = useDispatch()
+
+    const { chats } = useSelector((state: RootState) => state.chatsSlice)
+
+    const handleOpenChat = (chatObj: object, username: string) => {
+        console.log(chatObj)
+        handleOptionChange('chat')
+        dispatch(openChat({ chat: chatObj, username: username, }))
+    }
+
     return (
         <List subheader={
             <ListSubheader>
                 Your current chats:
             </ListSubheader>
         }>
-            {/* forEach unique sender message in session storage */}
-            <ListItem>
-                <ListItemButton>
-                    <ListItemText primary="sender username" secondary="message stored in session storage" />
-                </ListItemButton>
-                <IconButton >
-                    <Comment />
-                </IconButton>
-            </ListItem>
 
-            <ListItem>
-                <ListItemButton>
-                    <ListItemText primary="sender username" secondary="message stored in session storage" />
-                </ListItemButton>
-                <IconButton >
-                    <Comment />
-                </IconButton>
-            </ListItem>
-
-            <ListItem>
-                <ListItemButton>
-                    <ListItemText primary="sender username" secondary="message stored in session storage" />
-                </ListItemButton>
-                <IconButton >
-                    <Comment />
-                </IconButton>
-            </ListItem>
+            {Object.keys(chats).length > 0
+                ? Object.keys(chats).map((chat, index: number) => {
+                    return (
+                        <ListItem key={index}>
+                            <ListItemButton onClick={() => handleOpenChat(chats[chat], chat)}>
+                                {/* Sometimes my genius... it's almost frightening */}
+                                <ListItemText primary={`${chat}`} secondary={`${chats[chat].at(-1)[Object.keys(chats[chat].at(-1))[0]]}`} />
+                            </ListItemButton>
+                            <IconButton onClick={() => handleOpenChat(chats[chat], chat)}>
+                                <Comment />
+                            </IconButton>
+                        </ListItem>
+                    )
+                })
+                :
+                <ListItem>
+                    <ListItemButton>
+                        <ListItemText primary={`You have no on-going chats`} />
+                    </ListItemButton>
+                    <IconButton>
+                        <Comment />
+                    </IconButton>
+                </ListItem>
+            }
         </List>
     )
 }

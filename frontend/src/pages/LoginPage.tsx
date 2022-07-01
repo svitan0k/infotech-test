@@ -2,24 +2,33 @@ import { Box, Button, InputAdornment, Snackbar, TextField, Typography } from '@m
 import React, { FormEvent, useEffect, useState } from 'react'
 import { Circle, Close, HorizontalRule, Visibility, VisibilityOff } from '@mui/icons-material/';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { Link } from 'react-router-dom';
-import { userResult } from './RegisterPage';
+import { loginUser } from '../features/userInfoFeatures/userInfoStateSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../store';
+
+
 
 
 const LoginPage: React.FC = () => {
 
     const navigate = useNavigate()
+    const dispatch = useDispatch<any>()
+
+    const { userInfo } = useSelector((state: RootState) => state.userInfo)
 
     const [username, setUsername] = useState<string>('')
-    // const [usernameError, setUsernameError] = useState<string>('')
     const [password, setPassword] = useState<string>('')
-    // const [passwordError, setPasswordError] = useState<string>('')
     const [showPassword, setShowPassword] = useState<boolean>(false)
     const [submitBtnTimeout, setSubmitBtnTimeout] = useState<boolean>(false)
     const [serverError, setServerError] = useState<string>('')
-    const [isLoggedIn, setIsLoggedIn] = useState<boolean>(!!sessionStorage.getItem('username'))
-    // const renderCount = useRef<number>(0)
+
+
+    useEffect(() => {
+        if (userInfo.username) {
+            navigate('/')
+        }
+    }, [userInfo.username, navigate])
 
 
     const handleClickShowPassword = () => {
@@ -30,55 +39,25 @@ const LoginPage: React.FC = () => {
         event.preventDefault();
     };
 
-    useEffect(() => {
-        if (isLoggedIn) {
-            navigate('/')
-        }
-    }, [isLoggedIn, navigate])
-
     const handleCloseSnackbar = (event: React.SyntheticEvent | Event, reason?: string) => {
         console.log(reason)
         setServerError('')
     }
-
-    console.log(serverError)
-
-    const snakbarAction = (
-        <>
-            <Button onClick={handleCloseSnackbar}><Close fontSize='small' /></Button>
-        </>
-    )
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault()
 
         setSubmitBtnTimeout(true)
 
-        const config = {
-            headers: {
-                "Content-type": "application/json",
-            }
-        }
-
-        await axios.post('api/users/login', {
-            'username': username,
-            'password': password,
-        }, config).then((response: { data: { error?: { message: string }, result?: userResult } }) => {
-            console.log('all good, logging in')
-            setSubmitBtnTimeout(false)
-            
-            if (response.data.result) {
-                sessionStorage.setItem('username', response.data.result.username)
-                sessionStorage.setItem('token', response.data.result.tokenID)
-                setIsLoggedIn(true)
-            }
-        }).catch((error: any) => {
-            console.log(error)
-            console.log(error.response.data.error)
-            setServerError(error.response.data.error ? error.response.data.error : error.message)
-            setSubmitBtnTimeout(false)
-        })
+        dispatch(loginUser({ username: username, password: password }))
     }
+
+
+    const snakbarAction = (
+        <>
+            <Button onClick={handleCloseSnackbar}><Close fontSize='small' /></Button>
+        </>
+    )
 
     return (
         <Box sx={{
@@ -142,8 +121,6 @@ const LoginPage: React.FC = () => {
                             onChange={(e) => setUsername(e.target.value)}
                             InputProps={{ disableUnderline: true, }}
                             InputLabelProps={{ required: false }}
-                            // error={!!usernameError}
-                            // helperText={usernameError}
                             focused
                             required />
                         <TextField label="Password" variant="filled"
@@ -168,8 +145,6 @@ const LoginPage: React.FC = () => {
                                 ),
                             }}
                             InputLabelProps={{ required: false }}
-                            // error={!!passwordError}
-                            // helperText={passwordError}
                             focused
                             required />
 

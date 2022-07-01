@@ -5,6 +5,9 @@ import SendView from '../components/SendView'
 import InboxView from '../components/InboxView'
 import ChatView from '../components/ChatView'
 import ContactsView from '../components/ContactsView'
+import { useDispatch, useSelector } from 'react-redux'
+import { RootState } from '../store'
+import { userLogout } from '../features/userInfoFeatures/userInfoStateSlice'
 
 
 
@@ -12,20 +15,20 @@ const Homepage: React.FC = () => {
 	const screenWidth = useMediaQuery('(max-width: 600px)')
 
 	const navigate = useNavigate()
-	console.log(screenWidth)
+	const dispatch = useDispatch<any>()
+
+	const { userInfo } = useSelector((state: RootState) => state.userInfo)
+
 	const [currentView, setCurrentView] = useState<string>('inbox')
-	const [isLoggedIn, setIsLoggedIn] = useState<boolean>(!!sessionStorage.getItem('username'))
 
 	useEffect(() => {
-		if (!isLoggedIn) {
+		if (!userInfo.username) {
 			navigate('/login')
 		}
-	}, [isLoggedIn, navigate])
+	}, [userInfo.username, navigate])
 
 	const handleLogout = () => {
-		sessionStorage.removeItem('username')
-		sessionStorage.removeItem('token')
-		setIsLoggedIn(false)
+		dispatch(userLogout())
 	}
 
 	const handleOptionChange = (elemId: string) => {
@@ -85,10 +88,10 @@ const Homepage: React.FC = () => {
 			<Box sx={{
 				width: "100%",
 			}}>
-				{currentView === 'inbox' ? <InboxView />
-					: currentView === 'send' ? <SendView />
+				{currentView === 'inbox' ? <InboxView handleOptionChange={handleOptionChange}/>
+					: currentView === 'send' ? <SendView handleOptionChange={handleOptionChange}/>
 					: currentView === 'chat' ? <ChatView />
-					: <ContactsView />
+					: <ContactsView handleOptionChange={handleOptionChange} />
 				}
 			</Box>
 		</Box >

@@ -1,12 +1,55 @@
-import React, { useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { IconButton, List, ListItem, ListItemText, ListSubheader, Menu, MenuItem, } from '@mui/material'
-import { Comment, MoreVert, } from '@mui/icons-material'
+import { MoreVert, } from '@mui/icons-material'
+import { useDispatch, useSelector } from 'react-redux'
+import { RootState } from '../store'
+import { removeContact, } from '../features/contactsFeatures/contactsStateSlice'
+import { shareContext } from '../contexts/SharedContext'
 
 
-const ContactsView: React.FC = () => {
 
-    const [openMoreOptions, setOpenMoreOptions] = useState<null | HTMLElement>(null)
+interface ContactsViewTS {
+    handleOptionChange: Function,
+}
+
+
+const ContactsView: React.FC<ContactsViewTS> = ({ handleOptionChange }) => {
+
+    const dispatch = useDispatch()
+    const { contacts } = useSelector((state: RootState) => state.contactsSlice)
+    const { passedUsername, setPassedUsername } = useContext(shareContext)
+
+    const [openMoreOptions, setOpenMoreOptions] = useState<HTMLElement | null>(null)
+    const [optionsOnId, setOptionsOnId] = useState<number | null>(null)
     const optionsOpen = Boolean(openMoreOptions)
+
+
+    const handleOptions = (currentTarget: any, contactId: number) => {
+        setOpenMoreOptions(currentTarget)
+        setOptionsOnId(contactId)
+    }
+
+    const handleRemoveContact = () => {
+        dispatch(removeContact({ optionsOnId }))
+        setOpenMoreOptions(null)
+    }
+
+    const handleBlockUser = () => {
+        dispatch(blockUser(contacts[optionsOnId!]))
+        setOpenMoreOptions(null)
+    }
+
+
+
+    const handleSendNewMessage = async () => {
+        setPassedUsername(contacts[optionsOnId!])
+    }
+
+
+    useEffect(() => {
+        handleOptionChange('send')
+    }, [passedUsername, handleOptionChange])
+
 
     return (
         <List subheader={
@@ -14,7 +57,6 @@ const ContactsView: React.FC = () => {
                 Your contacts:
             </ListSubheader>
         }>
-            {/* forEach unique sender message in session storage */}
             <Menu
                 anchorEl={openMoreOptions}
                 open={optionsOpen}
@@ -23,40 +65,32 @@ const ContactsView: React.FC = () => {
                     'aria-labelledby': 'basic-button',
                 }}
             >
-                <MenuItem onClick={() => setOpenMoreOptions(null)}>Remove from contacts</MenuItem>
-                <MenuItem onClick={() => setOpenMoreOptions(null)}>Block</MenuItem>
+                <MenuItem onClick={() => handleSendNewMessage()}>
+                    Send message
+                </MenuItem>
+                <MenuItem onClick={() => handleRemoveContact()}>
+                    Remove from contacts
+                </MenuItem>
+                <MenuItem onClick={() => handleBlockUser()} >
+                    Block
+                </MenuItem>
             </Menu>
 
-            <ListItem>
-                <ListItemText primary="sender username" secondary="message stored in session storage" />
-                <IconButton
-                    onClick={(e) => {
-                        setOpenMoreOptions(e.currentTarget)
-                    }}>
-                    <MoreVert fontSize='small' />
-                </IconButton>
-            </ListItem>
-
-            <ListItem>
-                <ListItemText primary="sender username" secondary="message stored in session storage" />
-                <IconButton
-                    onClick={(e) => {
-                        setOpenMoreOptions(e.currentTarget)
-                    }}>
-                    <MoreVert fontSize='small' />
-                </IconButton>
-            </ListItem>
-
-            <ListItem>
-                <ListItemText primary="sender username" secondary="message stored in session storage" />
-                <IconButton
-                    onClick={(e) => {
-                        setOpenMoreOptions(e.currentTarget)
-                    }}>
-                    <MoreVert fontSize='small' />
-                </IconButton>
-            </ListItem>
-        </List>
+            {Object.keys(contacts).map((contact, index) => {
+                console.log('this is string:', contact)
+                return (
+                    <ListItem key={index}>
+                        <ListItemText primary={`${contacts[+contact]}`} />
+                        <IconButton
+                            onClick={(e) => {
+                                handleOptions(e.currentTarget, +contact)
+                            }}>
+                            <MoreVert fontSize='small' />
+                        </IconButton>
+                    </ListItem>
+                )
+            })}
+        </List >
     )
 }
 
