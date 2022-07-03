@@ -39,69 +39,89 @@ const ChatView: React.FC = () => {
 
     return (
         <>
-            <List subheader={
-                <ListSubheader>
-                    Your chat with {openChat.username}
-                    <IconButton
-                        onClick={(e) => {
-                            handleOptions(e.currentTarget)
-                        }}
-                        sx={{
-                            position: 'relative',
-                        }}
-                    >
-                        <MoreVert fontSize='small' />
-                    </IconButton>
-                    <Menu
-                        anchorEl={openMoreOptions}
-                        open={optionsOpen}
-                        onClose={() => setOpenMoreOptions(null)}
-                        MenuListProps={{
-                            'aria-labelledby': 'basic-button',
-                        }}
-                    >
-                        <MenuItem onClick={() => handleAddContact()}>Add To Contacts</MenuItem>
-                        <MenuItem onClick={() => handleBlock()}>Block</MenuItem>
-                    </Menu>
+            {Object.keys(openChat).length > 0 ?
+                <>
+                    <List subheader={
+                        <ListSubheader>
+                            Your chat with {openChat.username}
+                            <IconButton
+                                onClick={(e) => {
+                                    handleOptions(e.currentTarget)
+                                }}
+                                sx={{
+                                    position: 'relative',
+                                }}
+                            >
+                                <MoreVert fontSize='small' />
+                            </IconButton>
+                            <Menu
+                                anchorEl={openMoreOptions}
+                                open={optionsOpen}
+                                onClose={() => setOpenMoreOptions(null)}
+                                MenuListProps={{
+                                    'aria-labelledby': 'basic-button',
+                                }}
+                            >
+                                <MenuItem onClick={() => handleAddContact()}>Add To Contacts</MenuItem>
+                                <MenuItem onClick={() => handleBlock()}>Block</MenuItem>
+                            </Menu>
 
-                </ListSubheader>
-            }>
-                {openChat.chat.map((message: { [key: string]: string }, index: number) => { // .chat[Object.keys(openChat.chat).at(0)]
-                    console.log(message)
-                    return (
-                        <ListItem key={index}>
-                            <ListItemText primary={`${Object.keys(message).at(0)}: ${message[Object.keys(message).at(0)!]}`} secondary={`18:43`} />
-                            {/* <IconButton >
+                        </ListSubheader>
+                    }>
+                        {openChat.chat.map((message: { [key: string]: string }, index: number) => { // .chat[Object.keys(openChat.chat).at(0)]
+                            console.log(message)
+                            return (
+                                <ListItem key={index} sx={{
+                                    borderLeft: '1px solid #87b7e7'
+                                }}>
+                                    <ListItemText primary={`${Object.keys(message)[0]}: ${message[Object.keys(message)[0]]}`} secondary={`${message.time}`} />
+                                    {/* <IconButton >
                             <Comment /> // could maybe implement a time icon
                         </IconButton> */}
-                        </ListItem>
-                    )
-                })}
-            </List>
-            <form
-                onSubmit={(e) => handleSend(e)}
-                style={{
+                                </ListItem>
+                            )
+                        })}
+                    </List>
+                    <form
+                        onSubmit={(e) => handleSend(e)}
+                        style={{
+                            display: "flex",
+                            flexFlow: "column",
+                            gap: "1rem",
+                            width: "85%",
+                            margin: "0 auto",
+                        }}>
+                        <TextField
+                            id="outlined-multiline-flexible"
+                            label="Message"
+                            variant="standard"
+                            multiline
+                            maxRows={20}
+                            value={messageBody}
+                            onChange={(e) => setMessageBody(e.target.value)}
+                            InputLabelProps={{ required: false }}
+                            required
+                        />
+                        <Button
+                            type='submit'
+                            endIcon={<Send />}>Send</Button>
+                    </form>
+                </>
+                :
+                <List sx={{
+                    width: "100%",
                     display: "flex",
                     flexFlow: "column",
-                    gap: "1rem",
-                    width: "85%",
-                    margin: "0 auto",
+                    justifyContent: "center",
+                    alignItems: "center",
                 }}>
-                <TextField
-                    id="outlined-multiline-flexible"
-                    label="Message"
-                    variant="standard"
-                    multiline
-                    maxRows={20}
-                    value={messageBody}
-                    onChange={(e) => setMessageBody(e.target.value)}
-                    InputLabelProps={{ required: false }}
-                    required
-                />
-                <Button
-                    type='submit'
-                    endIcon={<Send />}>Send</Button>
-            </form>
+                    <ListItem sx={{
+                        textAlign: "center",
+                    }}>
+                        <ListItemText secondary={`You have no on-going chats`} />
+                    </ListItem>
+                </List>
+            }
         </>
     )
 }

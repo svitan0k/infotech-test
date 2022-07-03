@@ -25,10 +25,10 @@ const LoginPage: React.FC = () => {
 
 
     useEffect(() => {
-        if (userInfo.username) {
+        if (userInfo.user_id) {
             navigate('/')
         }
-    }, [userInfo.username, navigate])
+    }, [userInfo.user_id, navigate])
 
 
     const handleClickShowPassword = () => {

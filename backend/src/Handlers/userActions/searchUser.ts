@@ -11,6 +11,5 @@ export function searchUser(username: string): Promise<Error | QueryResult<any>> 
                 resolve(search_user_result)
             }
         })
-
     })
 }

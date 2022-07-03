@@ -1,9 +1,11 @@
 import { Send } from '@mui/icons-material'
 import { Button, InputAdornment, TextField } from '@mui/material'
-import React, { FormEvent, useState } from 'react'
+import React, { FormEvent, useContext, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { sendMessage } from '../features/chatFeatures/chatStateSlice'
 import { RootState } from '../store'
+import { shareContext } from '../contexts/SharedContext'
+import { useNavigate } from 'react-router-dom'
 
 interface SendViewTS {
     handleOptionChange: Function,
@@ -11,18 +13,30 @@ interface SendViewTS {
 
 const SendView: React.FC<SendViewTS> = ({ handleOptionChange }) => {
 
-    const dispatch = useDispatch()
+    const navigate = useNavigate()
+    const dispatch = useDispatch<any>()
+    const { passedUsername, setPassedUsername } = useContext(shareContext)
+
 
     const { userInfo } = useSelector((state: RootState) => state.userInfo)
 
-    const [recipient, setRecipient] = useState<string>('')
+    const [recipient, setRecipient] = useState<string>(passedUsername ? passedUsername : '')
     const [messageBody, setMessageBody] = useState<string>('')
 
     const handleSend = async (e: FormEvent) => {
         e.preventDefault()
         handleOptionChange('chat')
-        dispatch(sendMessage({ sender: userInfo.username, recipient: recipient, message: messageBody }))
+        if (userInfo.user_id) {
+            console.log('sending new message as ', userInfo.user_id)
+            dispatch(sendMessage({ sender: userInfo.user_id.toString(), recipient: recipient, message: messageBody })) // replace sender with id? (yeah... yeah.)
+        } else {
+            navigate('/login')
+        }
     }
+
+    useEffect(() => {
+        setPassedUsername('')
+    }, [])
 
     return (
         <form

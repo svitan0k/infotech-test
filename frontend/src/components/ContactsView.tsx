@@ -3,7 +3,7 @@ import { IconButton, List, ListItem, ListItemText, ListSubheader, Menu, MenuItem
 import { MoreVert, } from '@mui/icons-material'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '../store'
-import { removeContact, } from '../features/contactsFeatures/contactsStateSlice'
+import { blockContact, removeContact, } from '../features/contactsFeatures/contactsStateSlice'
 import { shareContext } from '../contexts/SharedContext'
 
 
@@ -15,7 +15,7 @@ interface ContactsViewTS {
 
 const ContactsView: React.FC<ContactsViewTS> = ({ handleOptionChange }) => {
 
-    const dispatch = useDispatch()
+    const dispatch = useDispatch<any>()
     const { contacts } = useSelector((state: RootState) => state.contactsSlice)
     const { passedUsername, setPassedUsername } = useContext(shareContext)
 
@@ -35,7 +35,7 @@ const ContactsView: React.FC<ContactsViewTS> = ({ handleOptionChange }) => {
     }
 
     const handleBlockUser = () => {
-        dispatch(blockUser(contacts[optionsOnId!]))
+        dispatch(blockContact({ username: contacts[optionsOnId!] }))
         setOpenMoreOptions(null)
     }
 
@@ -47,7 +47,10 @@ const ContactsView: React.FC<ContactsViewTS> = ({ handleOptionChange }) => {
 
 
     useEffect(() => {
-        handleOptionChange('send')
+        if (passedUsername) {
+            console.log(passedUsername)
+            handleOptionChange('send')
+        }
     }, [passedUsername, handleOptionChange])
 
 
@@ -57,39 +60,47 @@ const ContactsView: React.FC<ContactsViewTS> = ({ handleOptionChange }) => {
                 Your contacts:
             </ListSubheader>
         }>
-            <Menu
-                anchorEl={openMoreOptions}
-                open={optionsOpen}
-                onClose={() => setOpenMoreOptions(null)}
-                MenuListProps={{
-                    'aria-labelledby': 'basic-button',
-                }}
-            >
-                <MenuItem onClick={() => handleSendNewMessage()}>
-                    Send message
-                </MenuItem>
-                <MenuItem onClick={() => handleRemoveContact()}>
-                    Remove from contacts
-                </MenuItem>
-                <MenuItem onClick={() => handleBlockUser()} >
-                    Block
-                </MenuItem>
-            </Menu>
-
-            {Object.keys(contacts).map((contact, index) => {
-                console.log('this is string:', contact)
-                return (
-                    <ListItem key={index}>
-                        <ListItemText primary={`${contacts[+contact]}`} />
-                        <IconButton
-                            onClick={(e) => {
-                                handleOptions(e.currentTarget, +contact)
-                            }}>
-                            <MoreVert fontSize='small' />
-                        </IconButton>
-                    </ListItem>
-                )
-            })}
+            {Object.keys(contacts).length > 0 ?
+                <>
+                    <Menu
+                        anchorEl={openMoreOptions}
+                        open={optionsOpen}
+                        onClose={() => setOpenMoreOptions(null)}
+                        MenuListProps={{
+                            'aria-labelledby': 'basic-button',
+                        }}
+                    >
+                        <MenuItem onClick={() => handleSendNewMessage()}>
+                            Send message
+                        </MenuItem>
+                        <MenuItem onClick={() => handleRemoveContact()}>
+                            Remove from contacts
+                        </MenuItem>
+                        <MenuItem onClick={() => handleBlockUser()} >
+                            Block
+                        </MenuItem>
+                    </Menu>
+                    {Object.keys(contacts).map((contact, index) => {
+                        return (
+                            <ListItem key={index}>
+                                <ListItemText primary={`${contacts[+contact]}`} />
+                                <IconButton
+                                    onClick={(e) => {
+                                        handleOptions(e.currentTarget, +contact)
+                                    }}>
+                                    <MoreVert fontSize='small' />
+                                </IconButton>
+                            </ListItem>
+                        )
+                    })}
+                </>
+                :
+                <ListItem sx={{
+                    textAlign: "center",
+                }}>
+                    <ListItemText secondary={`You have no saved contacts`} />
+                </ListItem>
+            }
         </List >
     )
 }

@@ -27,10 +27,10 @@ const RegisterPage: React.FC = () => {
     const renderCount = useRef<number>(0)
 
     useEffect(() => {
-        if (userInfo.username) {
+        if (userInfo.user_id) {
             navigate('/')
         }
-    }, [userInfo.username, navigate])
+    }, [userInfo.user_id, navigate])
 
     // username error check
     useEffect(() => {

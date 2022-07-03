@@ -44,13 +44,10 @@ const InboxView: React.FC<InboxViewTS> = ({ handleOptionChange }) => {
                     )
                 })
                 :
-                <ListItem>
-                    <ListItemButton>
-                        <ListItemText primary={`You have no on-going chats`} />
-                    </ListItemButton>
-                    <IconButton>
-                        <Comment />
-                    </IconButton>
+                <ListItem sx={{
+                    textAlign: "center",
+                }}>
+                    <ListItemText secondary={`You have no new messages`} />
                 </ListItem>
             }
         </List>

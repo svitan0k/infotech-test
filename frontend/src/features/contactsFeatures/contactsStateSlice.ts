@@ -1,4 +1,4 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
 
 export interface contactsSliceInitState {
@@ -8,10 +8,15 @@ export interface contactsSliceInitState {
 }
 
 
+export const blockContact = createAsyncThunk('', async (args: {username: string}, thunkAPI) => {
+    const {username} = args
+})
+
+
 export const contactsSlice = createSlice({
     name: 'contactsSlice',
     initialState: {
-        contacts: [],
+        contacts: {},
     } as contactsSliceInitState,
     reducers: {
         addContact: (state, action) => {
@@ -22,8 +27,14 @@ export const contactsSlice = createSlice({
             console.log(state.contacts[action.payload.optionsOnId])
             delete state.contacts[action.payload.optionsOnId]
         },
-
     },
+
+    extraReducers: (builder) => {
+        builder
+        .addCase(blockContact.fulfilled, (state, action) => {
+
+        })
+    }
 })
 
 

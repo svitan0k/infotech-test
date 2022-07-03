@@ -13,6 +13,7 @@ const reducer = {
 const preloadedState = {
     userInfo: {
         userInfo: {
+            user_id: sessionStorage.getItem('user_id') || null,
             username: sessionStorage.getItem('username') || null,
             token: sessionStorage.getItem('token') || null
         },
@@ -26,36 +27,29 @@ const preloadedState = {
     chatsSlice: {
         chats: {
             Sam: [
-                { username1: "hello there" },
-                { username2: "yes, hello" },
-                { username1: "How are you?" },
-                { username1: "doing fine?" },
-                { username2: "yeah, I'm good" },
+                { username1: "hello there", time: new Date(Date.now()).getHours().toString() + ":" + new Date(Date.now()).getMinutes().toString()},
+                { username2: "yes, hello", time: new Date(Date.now()).getHours().toString() + ":" + new Date(Date.now()).getMinutes().toString()},
+                { username1: "How are you?", time: new Date(Date.now()).getHours().toString() + ":" + new Date(Date.now()).getMinutes().toString()},
+                { username1: "doing fine?", time: new Date(Date.now()).getHours().toString() + ":" + new Date(Date.now()).getMinutes().toString()},
+                { username2: "yeah, I'm good", time: new Date(Date.now()).getHours().toString() + ":" + new Date(Date.now()).getMinutes().toString()},
             ],
             Lucky_guy: [
-                { username1: "hello there" },
-                { username2: "yes, hello" },
-                { username1: "How are you?" },
-                { username1: "doing fine?" },
-                { username2: "yeah, I'm ok" },
-            ],
-            SomeUserWow: [
-                { username1: "hello there" },
-                { username2: "yes, hello" },
-                { username1: "How are you?" },
-                { username1: "doing fine?" },
-                { username2: "It's going slow" },
+                { username1: "hello there", time: new Date(Date.now()).getHours().toString() + ":" + new Date(Date.now()).getMinutes().toString()},
+                { username2: "yes, hello", time: new Date(Date.now()).getHours().toString() + ":" + new Date(Date.now()).getMinutes().toString()},
+                { username1: "How are you?", time: new Date(Date.now()).getHours().toString() + ":" + new Date(Date.now()).getMinutes().toString()},
+                { username1: "doing fine?", time: new Date(Date.now()).getHours().toString() + ":" + new Date(Date.now()).getMinutes().toString()},
+                { username2: "yeah, I'm good", time: new Date(Date.now()).getHours().toString() + ":" + new Date(Date.now()).getMinutes().toString()},
             ],
         },
         openChat: {
             username: "some dude",
             
             chat: [
-                { username1: "hello there" },
-                { username2: "yes, hello" },
-                { username1: "How are you?" },
-                { username1: "doing fine?" },
-                { username2: "yeah, I'm good" },
+                { username1: "hello there", time: new Date(Date.now()).getHours().toString() + ":" + new Date(Date.now()).getMinutes().toString()},
+                { username2: "yes, hello", time: new Date(Date.now()).getHours().toString() + ":" + new Date(Date.now()).getMinutes().toString()},
+                { username1: "How are you?", time: new Date(Date.now()).getHours().toString() + ":" + new Date(Date.now()).getMinutes().toString()},
+                { username1: "doing fine?", time: new Date(Date.now()).getHours().toString() + ":" + new Date(Date.now()).getMinutes().toString()},
+                { username2: "yeah, I'm good", time: new Date(Date.now()).getHours().toString() + ":" + new Date(Date.now()).getMinutes().toString()},
             ],
         },
     } as chatSliceInitState,
