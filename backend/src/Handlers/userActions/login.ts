@@ -26,7 +26,7 @@ export function loginHandler(loginData: dataObj, loginCallback: cbFunction): voi
             searchUser(username).then((result) => { // check if user exists
                 if ('rows' in result && result.rows.length > 0) { // "if existing user was found"
                     if (result.rows[0].password === Helpers.hash(password)) { // "if password for the user is correct"
-                        const newToken = createToken(result.rows[0].id, result.rows[0].username) // create new access token with 1 hour expiration time
+                        const newToken = createToken(result.rows[0].id, result.rows[0].username, result.rows[0].role) // create new access token with 1 hour expiration time
                         if (typeof (newToken) === 'object') {
                             checkToken(result.rows[0].id).then((result) => { // search for existing access token
                                 if ('rows' in result && result.rows.length > 0) { // "if access token already exists, replace with a new one"

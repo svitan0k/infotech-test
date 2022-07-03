@@ -8,6 +8,8 @@ abstract class HelpersTS {
     abstract convertJsonToObj(buffer: string): object
     abstract hash(string: string): (string | boolean)
     abstract createRandomToken(stringLength: number): (string | boolean)
+    abstract convertToMorseCode(message: string, isSyncOperation: boolean): Promise<string> | string
+    abstract decryptMorseCode(message: string): Promise<string>
 }
 
 
@@ -15,6 +17,89 @@ class HelpersClass extends HelpersTS {
     constructor() {
         super()
     }
+
+    morseCode: { [key: string]: string } = {
+        "A": ".-",
+        "B": "-...",
+        "C": "-.-.",
+        "D": "-..",
+        "E": ".",
+        "F": "..-.",
+        "G": "--.",
+        "H": "....",
+        "I": "..",
+        "J": ".---",
+        "K": "-.-",
+        "L": ".-..",
+        "M": "--",
+        "N": "-.",
+        "O": "---",
+        "P": ".--.",
+        "Q": "--.-",
+        "R": ".-.",
+        "S": "...",
+        "T": "-",
+        "U": "..-",
+        "V": "...-",
+        "W": ".--",
+        "X": "-..-",
+        "Y": "-.--",
+        "Z": "--..",
+        " ": `\xa0\xa0\xa0`,
+        "0": "-----",
+        "1": ".----",
+        "2": "..---",
+        "3": "...--",
+        "4": "....-",
+        "5": ".....",
+        "6": "-....",
+        "7": "--...",
+        "8": "---..",
+        "9": "----.",
+        ".": ".-.-.-",
+        ",": "--..--",
+        "?": "..--..",
+        "'": ".----.",
+        "!": "-.-.--",
+        "/": "-..-.",
+        "(": "-.--.",
+        ")": "-.--.-",
+        "&": ".-...",
+        ":": "---...",
+        ";": "-.-.-.",
+        "=": "-...-",
+        "+": ".-.-.",
+        "-": "-....-",
+        "_": "..--.-",
+        "\"": ".-..-.",
+        "$": "...-..-",
+        "@": ".--.-.",
+    }
+
+    convertToMorseCode(message: string, isSyncOperation: boolean): Promise<string> | string {
+        if (isSyncOperation) {
+            return message.toUpperCase().split(' ').map((word) => word.split('').map((symbol) => {
+                return this.morseCode[symbol] ? this.morseCode[symbol] : symbol
+            }).join(' ')).join("   ")
+        } else {
+            return new Promise((resolve) => {
+                resolve(message.toUpperCase().split(' ').map((word) => word.split('').map((symbol) => {
+                    return this.morseCode[symbol] ? this.morseCode[symbol] : symbol
+                }).join(' ')).join("   "))
+            })
+        }
+    }
+
+
+    decryptMorseCode(message: string): Promise<string> {
+        console.log("this is the message", message)
+        return new Promise((resolve) => {
+            resolve(message.split('   ').map((word) => word.split(' ').map((symbol) => {
+                return Object.keys(this.morseCode).find((key) => this.morseCode[key] === symbol)
+            }).join('')).join(' '))
+        })
+    }
+
 
     convertJsonToObj(buffer: string): object {
         try {

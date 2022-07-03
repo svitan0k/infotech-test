@@ -26,7 +26,7 @@ export function registerHandler(registerData: dataObj, registerCallback: cbFunct
                         if (error) {
                             registerCallback(500, { error: error })
                         } else {
-                            const newToken = createToken(result.rows[0].id, result.rows[0].username)
+                            const newToken = createToken(result.rows[0].id, result.rows[0].username, result.rows[0].role)
                             if (typeof (newToken) === 'object') {
                                 writeDBToken(newToken)
                                 registerCallback(200, { result: newToken })

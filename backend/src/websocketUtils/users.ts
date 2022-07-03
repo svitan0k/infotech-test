@@ -1,5 +1,5 @@
 import { pool } from "../Handlers/HandlersRouter"
-import moment from 'moment'
+import moment, { unix } from 'moment'
 
 
 export type userObj = {
@@ -21,7 +21,7 @@ const users: usersArray<userObj> = []
 //     return user
 // }
 
-export const validateUser = (client_id: string, token: string): Promise<Error | boolean> => {
+export const validateUser = (token: string): Promise<Error | boolean> => {
     return new Promise((resolve, reject) => {
         console.log('this is token id', token)
         pool.query(`SELECT token_exp FROM tokens WHERE token = '${token}'`, (error, token_search_result) => { // check if token was found
@@ -29,7 +29,8 @@ export const validateUser = (client_id: string, token: string): Promise<Error | 
                 reject(error)
             } else {
                 if (token_search_result.rowCount > 0) {
-                    if (moment(token_search_result.rows[0].token_exp).format() < moment().subtract(1, 'hour').format()) { // check if token has expired
+                    if (moment(token_search_result.rows[0].token_exp).format() < moment.utc().subtract(1, 'hour').format()) { // check if token has expired
+                        // console.log('comparing', moment(token_search_result.rows[0].token_exp).format(), "<", moment().subtract(1, 'hour').format(), "=", moment(token_search_result.rows[0].token_exp).format() < moment().subtract(1, 'hour').format(), "also this is Date obj:", new Date(Date.now()), "=", moment.utc().format())
                         console.log("token is ", false)
                         resolve(false)
                     } else {

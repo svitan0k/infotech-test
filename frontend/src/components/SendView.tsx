@@ -19,6 +19,7 @@ const SendView: React.FC<SendViewTS> = ({ handleOptionChange }) => {
 
 
     const { userInfo } = useSelector((state: RootState) => state.userInfo)
+    const { chats, openChat } = useSelector((state: RootState) => state.chatsSlice)
 
     const [recipient, setRecipient] = useState<string>(passedUsername ? passedUsername : '')
     const [messageBody, setMessageBody] = useState<string>('')
@@ -26,9 +27,15 @@ const SendView: React.FC<SendViewTS> = ({ handleOptionChange }) => {
     const handleSend = async (e: FormEvent) => {
         e.preventDefault()
         handleOptionChange('chat')
-        if (userInfo.user_id) {
-            console.log('sending new message as ', userInfo.user_id)
-            dispatch(sendMessage({ sender: userInfo.user_id.toString(), recipient: recipient, message: messageBody })) // replace sender with id? (yeah... yeah.)
+        if (userInfo.user_id && userInfo.username) {
+            console.log("This is recipient:", recipient, "newchat?:", ((openChat.username && openChat.username === recipient) || chats[recipient]))
+            if ((openChat.username && openChat.username === recipient) || chats[recipient]) {
+                console.log('sending to known chat')
+                dispatch(sendMessage({ sender: {id: userInfo.user_id.toString(), username: userInfo.username}, recipient: recipient, message: messageBody, isNewChat: false }))
+            } else {
+                console.log('sending to new chat')
+                dispatch(sendMessage({ sender: {id: userInfo.user_id.toString(), username: userInfo.username}, recipient: recipient, message: messageBody, isNewChat: true }))
+            }
         } else {
             navigate('/login')
         }

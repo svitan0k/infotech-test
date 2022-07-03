@@ -1,7 +1,8 @@
-import { configureStore } from "@reduxjs/toolkit";
+import { configureStore, getDefaultMiddleware } from "@reduxjs/toolkit";
 import { chatActionSlice, chatSliceInitState } from "./features/chatFeatures/chatStateSlice";
 import { contactsSlice, contactsSliceInitState } from "./features/contactsFeatures/contactsStateSlice";
 import { userInfoInitState, userInfoSlice } from "./features/userInfoFeatures/userInfoStateSlice";
+import webSocketMiddleware from "./reduxMiddleware/webSocketMiddleware";
 
 
 const reducer = {
@@ -15,7 +16,8 @@ const preloadedState = {
         userInfo: {
             user_id: sessionStorage.getItem('user_id') || null,
             username: sessionStorage.getItem('username') || null,
-            token: sessionStorage.getItem('token') || null
+            token: sessionStorage.getItem('token') || null,
+            role: sessionStorage.getItem('role') || null,
         },
         
         auxiliaryState: {
@@ -52,6 +54,8 @@ const preloadedState = {
                 { username2: "yeah, I'm good", time: new Date(Date.now()).getHours().toString() + ":" + new Date(Date.now()).getMinutes().toString()},
             ],
         },
+
+        decryptMessageStatus: ''
     } as chatSliceInitState,
 
     contactsSlice: {
@@ -66,7 +70,8 @@ const preloadedState = {
 
 const store = configureStore({
     reducer,
-    preloadedState,
+    // preloadedState,
+    middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(webSocketMiddleware)
 })
 
 export type RootState = ReturnType<typeof store.getState>

@@ -4,6 +4,7 @@ import { currentEnv } from "../config"
 import { Helpers } from "../Helpers"
 import { registerHandler } from "./userActions/register"
 import { loginHandler } from "./userActions/login"
+import { decryptMessageHandler } from "./chatActions/decryptMessage"
 
 // TODO
 // Customize all the error handling (right now it just returns {error: error})
@@ -50,7 +51,10 @@ class HandlersClass extends HandlersTS {
     }
 
 
-
+    // chat routes handlers
+    decryptMessage(message: dataObj, decryptMessageCallback: cbFunction): void {
+        decryptMessageHandler(message.payload.message, decryptMessageCallback)
+    }
 
 
     // Not found handler
@@ -61,13 +65,3 @@ class HandlersClass extends HandlersTS {
 
 
 export const Handlers = new HandlersClass()
-
-
-
-
-
-// 2018 by mvs
-
-// 28 payed holiday
-
-// 3 

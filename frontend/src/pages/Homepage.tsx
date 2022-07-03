@@ -7,9 +7,10 @@ import ChatView from '../components/ChatView'
 import ContactsView from '../components/ContactsView'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '../store'
-import { userLogout } from '../features/userInfoFeatures/userInfoStateSlice'
-import { handleReceivedOpenChat } from '../features/chatFeatures/chatStateSlice'
+import { connectToWebSocket, userLogout } from '../features/userInfoFeatures/userInfoStateSlice'
+import { handleReceivedNewMessage, handleReceivedOpenChat } from '../features/chatFeatures/chatStateSlice'
 import socket from '../webSocketsUtil/webSocketServer'
+import { AccountCircle, AccountCircleOutlined, Logout } from '@mui/icons-material'
 
 
 
@@ -32,22 +33,9 @@ const Homepage: React.FC = () => {
 	useEffect(() => {
 		if (userInfo.user_id) {
 
-			socket.auth = { client: {user_id: userInfo.user_id, username: userInfo.username, token: userInfo.token}, token: userInfo.token }
-			socket.connect()
+			dispatch(connectToWebSocket())
 
-			socket.on('message', ({ sender, message, time }) => {
-				console.log(`I'm recieving as ${socket.id} a message from ${sender}: ${message} -- Time: ${time}`)
-				// const dispatch = useDispatch<any>()
-	
-				dispatch(handleReceivedOpenChat({ sender: sender, message: message, time: time }))
-			})
-
-			socket.on('connect_error', (error) => {
-				if (error.message === 'invalid_token') {
-					console.log('there was an error connecting to websockets server with your token')
-					dispatch(userLogout())
-				}
-			})
+			console.log('inside useEffect')
 		}
 	})
 
@@ -88,14 +76,24 @@ const Homepage: React.FC = () => {
 				alignItems: "center",
 				justifyContent: "center",
 			}}>
-				<Typography>
+				<Typography sx={{
+					display: "flex",
+					flexFlow: "row",
+					alignItems: "center",
+					justifyContent: "center",
+					gap: "0.5rem",
+				}}>
+					<AccountCircleOutlined />
 					{userInfo.username}
 				</Typography>
 				<Divider orientation="vertical" flexItem sx={{
 					margin: "0 1rem",
 				}} />
 				<Button onClick={() => handleLogout()}
-				>Log out</Button>
+				>
+					<Logout />
+					Log out
+				</Button>
 			</Box>
 			<ButtonGroup
 				size={screenWidth ? "small" : "large"}

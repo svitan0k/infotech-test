@@ -1,7 +1,7 @@
-import { io } from 'socket.io-client'
+import { io, Socket } from 'socket.io-client'
 
 const serverURL: string = "http://localhost:3003"
-const socket = io(serverURL, { autoConnect: false })
+const socket: Socket = io(serverURL, { autoConnect: false })
 
 // for debug only
 socket.onAny((event: Event, ...args) => {

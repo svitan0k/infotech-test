@@ -1,7 +1,12 @@
-export const formattedMessage = (sender: string, message: string) => {
+import moment from "moment"
+import { Helpers } from "../Helpers"
+
+export const formattedMessage = (sender: string, message: string, isNewChat: boolean) => {
+
     return {
         sender: sender,
-        message: message,
-        time: new Date(Date.now()).getHours().toString() + ":" + new Date(Date.now()).getMinutes().toString()
+        message: Helpers.convertToMorseCode(message, true), // "true" to run this function synchronously
+        time: moment().format('HH:mm'),
+        isNewChat: isNewChat,
     }
 }

@@ -1,11 +1,13 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios from "axios";
+import socket from "../../webSocketsUtil/webSocketServer";
 
 
 export interface userResult {
     user_id: string,
     username: string,
     tokenID: string,
+    role: string,
     expires: string,
 }
 
@@ -14,6 +16,7 @@ export interface userInfoInitState {
         user_id: string | null,
         username: string | null,
         token: string | null,
+        role: string | null,
     },
 
     auxiliaryState: {
@@ -80,6 +83,7 @@ export const userInfoSlice = createSlice({
             user_id: sessionStorage.getItem('user_id') || null,
             username: sessionStorage.getItem('username') || null,
             token: sessionStorage.getItem('token') || null,
+            role: sessionStorage.getItem('role') || null,
         },
         auxiliaryState: {
             submitButtonTimeout: false,
@@ -91,26 +95,34 @@ export const userInfoSlice = createSlice({
             sessionStorage.removeItem('user_id')
             sessionStorage.removeItem('username')
             sessionStorage.removeItem('token')
+            sessionStorage.removeItem('role')
             state.userInfo.user_id = null
             state.userInfo.username = null
             state.userInfo.token = null
+            state.userInfo.role = null
+        },
+
+        connectToWebSocket: (state) => {
+            socket.auth = { client: { user_id: state.userInfo.user_id, username: state.userInfo.username, token: state.userInfo.token }}
+			socket.connect()
         }
     },
     extraReducers: (builder) => {
         builder
             // user login
             .addCase(loginUser.fulfilled, (state, action) => {
-                console.log("AAAAAAAAAAAAAAAAAAAAA:", action.payload.result.user_id)
                 state.auxiliaryState.submitButtonTimeout = false
 
-                // Session is needed to keep user logged in is the page refreshes(redux state gets wiped out) 
+                // sessionStorage is needed to keep user logged in if the page is refreshed(redux state gets wiped out) 
                 sessionStorage.setItem('user_id', action.payload.result.user_id)
                 sessionStorage.setItem('username', action.payload.result.username)
                 sessionStorage.setItem('token', action.payload.result.tokenID)
+                sessionStorage.setItem('role', action.payload.result.role)
 
                 state.userInfo.user_id = action.payload.result.user_id
                 state.userInfo.username = action.payload.result.username
                 state.userInfo.token = action.payload.result.tokenID
+                state.userInfo.role = action.payload.result.role
             })
             .addCase(loginUser.rejected, (state, action) => {
                 console.log(action.payload)
@@ -124,11 +136,12 @@ export const userInfoSlice = createSlice({
                 sessionStorage.setItem('user_id', action.payload.result.user_id)
                 sessionStorage.setItem('username', action.payload.result.username)
                 sessionStorage.setItem('token', action.payload.result.tokenID)
+                sessionStorage.setItem('role', action.payload.result.role)
 
                 state.userInfo.user_id = action.payload.result.user_id
                 state.userInfo.username = action.payload.result.username
                 state.userInfo.token = action.payload.result.tokenID
-
+                state.userInfo.role = action.payload.result.role
             })
             .addCase(registerUser.rejected, (state, action) => {
                 console.log(action.payload)
@@ -141,5 +154,6 @@ export const userInfoSlice = createSlice({
 
 
 export const {
-    userLogout
+    userLogout,
+    connectToWebSocket,
 } = userInfoSlice.actions
