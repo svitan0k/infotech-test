@@ -16,8 +16,9 @@ interface ContactsViewTS {
 const ContactsView: React.FC<ContactsViewTS> = ({ handleOptionChange }) => {
 
     const dispatch = useDispatch<any>()
-    const { contacts } = useSelector((state: RootState) => state.contactsSlice)
     const { passedUsername, setPassedUsername } = useContext(shareContext)
+    const { contacts } = useSelector((state: RootState) => state.contactsSlice)
+    const { userInfo } = useSelector((state: RootState) => state.userInfo)
 
     const [openMoreOptions, setOpenMoreOptions] = useState<HTMLElement | null>(null)
     const [optionsOnId, setOptionsOnId] = useState<number | null>(null)
@@ -30,12 +31,16 @@ const ContactsView: React.FC<ContactsViewTS> = ({ handleOptionChange }) => {
     }
 
     const handleRemoveContact = () => {
-        dispatch(removeContact({ optionsOnId }))
+        if (userInfo.username) {
+            dispatch(removeContact({ owner: userInfo.username, contact: optionsOnId!.toString() }))
+        }
         setOpenMoreOptions(null)
     }
 
     const handleBlockUser = () => {
-        dispatch(blockContact({ username: contacts[optionsOnId!] }))
+        if (userInfo.username) {
+            dispatch(blockContact({ owner: userInfo.username, contact: contacts[optionsOnId!] }))
+        }
         setOpenMoreOptions(null)
     }
 

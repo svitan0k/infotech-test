@@ -83,6 +83,10 @@ const apiRouter: { [key: string]: Function } = {
     'api/users/register': Handlers.register,
     'api/users/login': Handlers.login,
     'api/chat/decryptMessage': Handlers.decryptMessage,
+    'api/contacts/add': Handlers.addContact,
+    'api/contacts/remove': Handlers.removeContact,
+    'api/contacts/block': Handlers.blockContact,
+    'api/contacts/unblock': Handlers.unblockContact,
 }
 
 

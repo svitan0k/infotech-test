@@ -26,21 +26,21 @@ export function loginHandler(loginData: dataObj, loginCallback: cbFunction): voi
             searchUser(username).then((result) => { // check if user exists
                 if ('rows' in result && result.rows.length > 0) { // "if existing user was found"
                     if (result.rows[0].password === Helpers.hash(password)) { // "if password for the user is correct"
-                        const newToken = createToken(result.rows[0].id, result.rows[0].username, result.rows[0].role) // create new access token with 1 hour expiration time
-                        if (typeof (newToken) === 'object') {
+                        const newUserObject = createToken(result.rows[0].id, result.rows[0].username, result.rows[0].role) // create new access token with 1 hour expiration time
+                        if (typeof (newUserObject) === 'object') {
                             checkToken(result.rows[0].id).then((result) => { // search for existing access token
                                 if ('rows' in result && result.rows.length > 0) { // "if access token already exists, replace with a new one"
-                                    updateToken(newToken, (result) => {
+                                    updateToken(newUserObject, (result) => {
                                         if (result) {
                                             console.log('all good, loggin in')
-                                            loginCallback(200, { result: newToken })
+                                            loginCallback(200, { result: newUserObject })
                                         } else {
                                             loginCallback(500, { error: 'Error while updating user token' })
                                         }
                                     })
                                 } else { // "access token doesn't exist, provide a new one"
-                                    writeDBToken(newToken).then((result) => {
-                                        loginCallback(200, { result: newToken })
+                                    writeDBToken(newUserObject).then((result) => {
+                                        loginCallback(200, { result: newUserObject })
                                     }).catch((error) => {
                                         loginCallback(500, { error: 'Error while creating new token' })
                                     })

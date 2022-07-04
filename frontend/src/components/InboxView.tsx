@@ -1,6 +1,6 @@
 import React from 'react'
-import { IconButton, List, ListItem, ListItemButton, ListItemText, ListSubheader, } from '@mui/material'
-import { Comment, } from '@mui/icons-material'
+import { IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText, ListSubheader, } from '@mui/material'
+import { Comment, NotificationsActive, } from '@mui/icons-material'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '../store'
 import { openChat } from '../features/chatFeatures/chatStateSlice'
@@ -14,7 +14,7 @@ const InboxView: React.FC<InboxViewTS> = ({ handleOptionChange }) => {
 
     const dispatch = useDispatch()
 
-    const { chats } = useSelector((state: RootState) => state.chatsSlice)
+    const { chats, inboxStatus } = useSelector((state: RootState) => state.chatsSlice)
 
     const handleOpenChat = (chatObj: object, username: string) => {
         console.log(chatObj)
@@ -35,7 +35,15 @@ const InboxView: React.FC<InboxViewTS> = ({ handleOptionChange }) => {
                         <ListItem key={index}>
                             <ListItemButton onClick={() => handleOpenChat(chats[chat], chat)}>
                                 {/* Sometimes my genius... it's almost frightening */}
-                                <ListItemText primary={`${chat}`} secondary={`${chats[chat].at(-1)[Object.keys(chats[chat].at(-1))[0]]}`} />
+                                {inboxStatus[chat] ?
+                                    <>
+                                        <ListItemText primary={`${chat}`} secondary={`${chats[chat].at(-1)[Object.keys(chats[chat].at(-1))[0]]}`} />
+                                        <ListItemIcon>
+                                            <NotificationsActive />
+                                        </ListItemIcon>
+                                    </>
+                                    :
+                                    <ListItemText primary={`${chat}`} secondary={`${chats[chat].at(-1)[Object.keys(chats[chat].at(-1))[0]]}`} />}
                             </ListItemButton>
                             <IconButton onClick={() => handleOpenChat(chats[chat], chat)}>
                                 <Comment />

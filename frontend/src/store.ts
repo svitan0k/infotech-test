@@ -55,7 +55,9 @@ const preloadedState = {
             ],
         },
 
-        decryptMessageStatus: ''
+        decryptMessageStatus: {},
+        inboxStatus: {},
+
     } as chatSliceInitState,
 
     contactsSlice: {

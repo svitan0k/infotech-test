@@ -12,11 +12,12 @@ export interface chatSliceInitState {
         username: string,
         chat: { [key: string]: string }[],
     },
-    decryptMessageStatus: string,
+    decryptMessageStatus: { [key: string]: string },
+    inboxStatus: {[key: string]: string},
 }
 
 
-export const decryptMessage = createAsyncThunk('chatActionSlice/decryptMessage', async (args: { message: string }, thunkAPI) => {
+export const decryptMessage = createAsyncThunk('chatActionSlice/decryptMessage', async (args: { message: string, messageIndex: string }, thunkAPI,) => {
     const { message } = args
 
     const config = {
@@ -29,8 +30,6 @@ export const decryptMessage = createAsyncThunk('chatActionSlice/decryptMessage',
         const { data } = await axios.post('api/chat/decryptMessage', {
             'message': message,
         }, config)
-
-        console.log('GOT MESSAEEGE', data.message)
 
         return data
     } catch (error: any) {
@@ -72,17 +71,30 @@ export const chatActionSlice: Slice = createSlice({
     initialState: {
         chats: {},
         openChat: {},
-        decryptMessageStatus: '',
+        decryptMessageStatus: {},
+        inboxStatus: {},
     } as chatSliceInitState,
     reducers: {
-        openChat: (state, action) => {
-            console.log(action.payload)
-            state.openChat = { chat: action.payload.chat, username: action.payload.username }
+        clearChatState: (state) => {
+            state.chats = {}
+            state.openChat = {}
+            state.decryptMessageStatus = {}
+            state.inboxStatus = {}
         },
+        
+        openChat: (state, action) => {
+            state.openChat = { chat: action.payload.chat, username: action.payload.username }
+            if (action.payload.username in state.inboxStatus) {
+                delete state.inboxStatus[action.payload.username]
+            }
+        },
+
 
         handleReceivedOpenChat: (state, action) => {
             if (state.chats[action.payload.sender]) { // if chat with this sender already exists
                 if (state.openChat.username && state.openChat.username !== action.payload.sender) { // the chat is opened, but not with this sender
+                    state.inboxStatus[action.payload.sender] = "active"
+
                     state.chats = {
                         ...state.chats,
 
@@ -111,6 +123,8 @@ export const chatActionSlice: Slice = createSlice({
                 }
             } else { // chat with this sender doesn't exist
                 if (state.openChat.username && state.openChat.username !== action.payload.sender) { // the chat is opened, but not with this sender
+                    state.inboxStatus[action.payload.sender] = "active"
+
                     state.chats = {
                         ...state.chats,
 
@@ -172,6 +186,8 @@ export const chatActionSlice: Slice = createSlice({
 
             if (state.chats[action.payload.sender]) { // if chat with this sender already exists
                 if (state.openChat.username && state.openChat.username !== action.payload.sender) { // the chat is opened, but not with this sender
+                    state.inboxStatus[action.payload.sender] = "active"
+
                     state.chats = {
                         ...state.chats,
 
@@ -200,6 +216,9 @@ export const chatActionSlice: Slice = createSlice({
                 }
             } else { // chat with this sender doesn't exist
                 if (state.openChat.username && state.openChat.username !== action.payload.sender) { // the chat is opened, but not with this sender
+
+                    state.inboxStatus[action.payload.sender] = "active"
+
                     state.chats = {
                         ...state.chats,
 
@@ -293,15 +312,15 @@ export const chatActionSlice: Slice = createSlice({
 
                 }
             })
-            // .addCase(decryptMessage.pending, (state) => {
-            //     state.decryptMessageStatus = 'pending'
-            // })
+            .addCase(decryptMessage.pending, (state, {meta}) => {
+                state.decryptMessageStatus = {...state.decryptMessageStatus, [meta.arg.messageIndex]: 'pending'}
+            })
             .addCase(decryptMessage.fulfilled, (state, action) => {
-                state.decryptMessageStatus = action.payload.message
+                state.decryptMessageStatus = {...state.decryptMessageStatus, [action.meta.arg.messageIndex]: action.payload.message}
             })
             .addCase(decryptMessage.rejected, (state, action) => {
                 /// @ts-ignore
-                state.decryptMessageStatus = action.payload.error.response.data.error ? action.payload.error.response.data.error : action.payload.error.message
+                state.decryptMessageStatus = {...state.decryptMessageStatus, [action.meta.arg.messageIndex]: action.payload.error.response.data.error ? action.payload.error.response.data.error : action.payload.error.message}
             })
     }
 })
@@ -309,6 +328,7 @@ export const chatActionSlice: Slice = createSlice({
 
 export const {
     openChat,
+    clearChatState,
     handleReceivedOpenChat,
     handleReceivedNewMessage,
 } = chatActionSlice.actions
