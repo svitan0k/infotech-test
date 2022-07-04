@@ -7,7 +7,7 @@ export function serveFile(filePath: string, staticFolderPath: string, req: Incom
     if (filePath === '/' || path.extname(filePath).toLocaleLowerCase() === '') {
         filePath = '/index.html'
     }
-    
+
     const fileExtension: string = path.extname(filePath).toLocaleLowerCase()
 
     let fullPath = path.resolve(__dirname, '../../' + staticFolderPath + filePath)
@@ -35,7 +35,7 @@ export function serveFile(filePath: string, staticFolderPath: string, req: Incom
     readFile(fullPath, (error, result) => {
         if (error) {
             if (error.code === 'ENOENT') {
-                res.writeHead(404) // might want to add something here
+                res.writeHead(404)
                 res.end()
             } else {
                 res.writeHead(500)

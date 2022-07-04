@@ -1,7 +1,6 @@
 import { dataObj } from ".."
 import { Pool } from 'pg'
 import { currentEnv } from "../config"
-import { Helpers } from "../Helpers"
 import { registerHandler } from "./userActions/register"
 import { loginHandler } from "./userActions/login"
 import { decryptMessageHandler } from "./chatActions/decryptMessage"
@@ -11,10 +10,6 @@ import { blockContactHandler } from "./contactsActions/blockContactHandler"
 import { unblockContactHandler } from "./contactsActions/unblockContactHandler"
 import { getContactsHandler } from "./contactsActions/getContactsHandler"
 import { checkBlockedStatus } from "../websocketUtils/users"
-
-// TODO
-// Customize all the error handling (right now it just returns {error: error})
-// Check all the status code on all callbacks
 
 
 
@@ -47,7 +42,7 @@ abstract class HandlersTS {
     abstract unblockContact(usernames: dataObj, unblockContactCallback: cbFunction): void
     abstract checkBlockedUsers(usernmaes: dataObj, checkBlockedUsersCallback: cbFunction): void
 
-    // Request not found 
+    // request - not found 
     abstract notfound(notFoundData: dataObj, callback: cbFunction): void
 }
 
@@ -73,7 +68,7 @@ class HandlersClass extends HandlersTS {
     }
 
     checkBlockedUsers(usernames: dataObj, checkBlockedUsersCallback: cbFunction): void {
-        checkBlockedStatus({sender: usernames.queryParams.get('sender'), recipient: usernames.queryParams.get('recipient')}, checkBlockedUsersCallback)
+        checkBlockedStatus({ sender: usernames.queryParams.get('sender'), recipient: usernames.queryParams.get('recipient') }, checkBlockedUsersCallback)
     }
 
 
@@ -87,7 +82,7 @@ class HandlersClass extends HandlersTS {
     }
 
     removeContact(usernames: dataObj, removeContactCallback: cbFunction): void {
-        removeContactHandler({owner: usernames.queryParams.get('owner'), contact: usernames.queryParams.get('contact')}, removeContactCallback)
+        removeContactHandler({ owner: usernames.queryParams.get('owner'), contact: usernames.queryParams.get('contact') }, removeContactCallback)
     }
 
     blockContact(usernames: dataObj, blockContactCallback: cbFunction): void {
@@ -101,7 +96,7 @@ class HandlersClass extends HandlersTS {
 
     // Not found handler
     notfound(notFoundData: dataObj, notFoundCallback: cbFunction): void {
-        notFoundCallback(404, {})
+        notFoundCallback(404, {error: "404 - Resourse wasn't found"})
     }
 }
 

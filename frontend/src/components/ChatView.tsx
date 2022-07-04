@@ -87,7 +87,7 @@ const ChatView: React.FC = () => {
 
     return (
         <>
-            {Object.keys(openChat).length > 0 ?
+            {openChat.chat && openChat.chat.length > 0 ?
                 <>
                     {blockedStatus ?
                         <List sx={{

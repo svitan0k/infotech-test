@@ -3,7 +3,7 @@ import { IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText,
 import { Comment, NotificationsActive, } from '@mui/icons-material'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '../store'
-import { openChat } from '../features/chatFeatures/chatStateSlice'
+import { openChatAction } from '../features/chatFeatures/chatStateSlice'
 
 
 interface InboxViewTS {
@@ -18,7 +18,7 @@ const InboxView: React.FC<InboxViewTS> = ({ handleOptionChange }) => {
 
     const handleOpenChat = (chatObj: object, username: string) => {
         handleOptionChange('chat')
-        dispatch(openChat({ chat: chatObj, username: username, }))
+        dispatch(openChatAction({ chat: chatObj, username: username, }))
     }
 
     return (

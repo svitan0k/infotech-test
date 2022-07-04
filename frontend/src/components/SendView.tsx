@@ -2,7 +2,7 @@ import { Send } from '@mui/icons-material'
 import { Button, InputAdornment, TextField } from '@mui/material'
 import React, { FormEvent, useContext, useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { sendMessage } from '../features/chatFeatures/chatStateSlice'
+import { clearBlockedState, sendMessage } from '../features/chatFeatures/chatStateSlice'
 import { RootState } from '../store'
 import { shareContext } from '../contexts/SharedContext'
 import { useNavigate } from 'react-router-dom'
@@ -26,10 +26,12 @@ const SendView: React.FC<SendViewTS> = ({ handleOptionChange }) => {
 
     const focusRef = useRef<HTMLInputElement | null>(null)
 
+    
     const handleSend = async (e: FormEvent) => {
         e.preventDefault()
         handleOptionChange('chat')
         if (userInfo.user_id && userInfo.username) {
+            dispatch(clearBlockedState(''))
             if ((openChat.username && openChat.username === recipient.trim()) || chats[recipient.trim()]) {
                 dispatch(sendMessage({ sender: { id: userInfo.user_id.toString(), username: userInfo.username }, recipient: recipient.trim(), message: messageBody, isNewChat: false }))
             } else {

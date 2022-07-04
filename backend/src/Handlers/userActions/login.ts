@@ -1,4 +1,3 @@
-import { QueryResult } from "pg"
 import { dataObj } from "../.."
 import { Helpers } from "../../Helpers"
 import { cbFunction, pool } from "../HandlersRouter"
@@ -7,10 +6,6 @@ import { createToken } from "../tokenActions/createToken"
 import { updateToken } from "../tokenActions/updateToken"
 import { writeDBToken } from "../tokenActions/writeDBToken"
 import { searchUser } from "./searchUser"
-
-
-// TODO
-// Remove uneeded "error" in catch((error) => , where needed
 
 export function loginHandler(loginData: dataObj, loginCallback: cbFunction): void {
 
@@ -32,7 +27,6 @@ export function loginHandler(loginData: dataObj, loginCallback: cbFunction): voi
                                 if ('rows' in result && result.rows.length > 0) { // "if access token already exists, replace with a new one"
                                     updateToken(newUserObject, (result) => {
                                         if (result) {
-                                            console.log('all good, loggin in')
                                             loginCallback(200, { result: newUserObject })
                                         } else {
                                             loginCallback(500, { error: 'Error while updating user token' })
@@ -55,13 +49,13 @@ export function loginHandler(loginData: dataObj, loginCallback: cbFunction): voi
                         loginCallback(401, { error: 'Invalid credentials' })
                     }
                 } else {
-                    loginCallback(404, { error: 'Invalid credentials' }) // User does not exist
+                    loginCallback(404, { error: 'Invalid credentials' }) // User doesn't exist
                 }
-            }).catch((error) => {
-                loginCallback(400, { error: 'Provide all required info' })
             })
         } else {
-            loginCallback(405)
+            loginCallback(400, { error: 'Provide all required info' })
         }
+    } else {
+        loginCallback(405)
     }
 }

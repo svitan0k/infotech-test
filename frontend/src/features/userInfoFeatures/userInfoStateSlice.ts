@@ -25,7 +25,9 @@ export interface userInfoInitState {
     }
 }
 
-export const loginUser = createAsyncThunk<any, any, {rejectValue: AxiosError}>('userInfoSlice/loginUser', async (args: { username: string, password: string }, thunkAPI) => {
+type ServerError = { error: string }
+
+export const loginUser = createAsyncThunk<any, any, { rejectValue: AxiosError<ServerError> }>('userInfoSlice/loginUser', async (args: { username: string, password: string }, thunkAPI) => {
     const { username, password } = args
 
     const config = {
@@ -40,18 +42,28 @@ export const loginUser = createAsyncThunk<any, any, {rejectValue: AxiosError}>('
             'password': password,
         }, config) as { data: { result: userResult } }
 
-        thunkAPI.dispatch(getContacts({username}))
+        
+        if (data.result.user_id) {
+            thunkAPI.dispatch(getContacts({ username }))
+        }
 
         return data
     } catch (error: any) {
-        return thunkAPI.rejectWithValue( error )
+        if (axios.isAxiosError(error)) {
+            const serverError = error as AxiosError<ServerError>
+            if (serverError && serverError.response) {
+                return thunkAPI.rejectWithValue(serverError)
+            }
+        } else {
+            return thunkAPI.rejectWithValue(error)
+        }
     }
 })
 
 
 
 
-export const registerUser = createAsyncThunk('userInfoSlice/registerUser', async (args: {
+export const registerUser = createAsyncThunk<any, any, { rejectValue: AxiosError<ServerError> }>('userInfoSlice/registerUser', async (args: {
     username: string, password: string, role: string,
 }, thunkAPI) => {
 
@@ -72,7 +84,14 @@ export const registerUser = createAsyncThunk('userInfoSlice/registerUser', async
 
         return data
     } catch (error: any) {
-        return thunkAPI.rejectWithValue({ error })
+        if (axios.isAxiosError(error)) {
+            const serverError = error as AxiosError<ServerError>
+            if (serverError && serverError.response) {
+                return thunkAPI.rejectWithValue(serverError)
+            }
+        } else {
+            return thunkAPI.rejectWithValue(error)
+        }
     }
 })
 
@@ -107,8 +126,8 @@ export const userInfoSlice = createSlice({
         },
 
         connectToWebSocket: (state) => {
-            socket.auth = { client: { user_id: state.userInfo.user_id, username: state.userInfo.username, token: state.userInfo.token }}
-			socket.connect()
+            socket.auth = { client: { user_id: state.userInfo.user_id, username: state.userInfo.username, token: state.userInfo.token } }
+            socket.connect()
         }
     },
     extraReducers: (builder) => {
@@ -133,13 +152,17 @@ export const userInfoSlice = createSlice({
                 state.userInfo.role = action.payload.result.role
             })
             .addCase(loginUser.rejected, (state, action) => {
-                /// @ts-ignore -- too much headache trying to type AxiosError which can only be of two types(my custom "error" sent from the server and axios "message" error).
-                state.auxiliaryState.serverError = action.payload.response.data.error ? action.payload.response.data.error : action.payload.message
                 state.auxiliaryState.submitButtonTimeout = false
+
+                if (action.payload && action.payload.response && action.payload.response.data) {
+                    state.auxiliaryState.serverError = action.payload.response.data.error ? action.payload.response.data.error : action.payload.message
+                } else {
+                    state.auxiliaryState.serverError = 'There was an error, please try again later.'
+                }
             })
 
 
-            
+
             // user register
             .addCase(registerUser.pending, (state) => {
                 state.auxiliaryState.serverError = ''
@@ -157,9 +180,14 @@ export const userInfoSlice = createSlice({
                 state.userInfo.role = action.payload.result.role
             })
             .addCase(registerUser.rejected, (state, action) => {
-                /// @ts-ignore -- too much headache trying to type AxiosError which can only be of two types(my custom "error" sent from the server and axios "message" error).
-                state.auxiliaryState.serverError = action.payload.response.data.error ? action.payload.response.data.error : action.payload.message
+
                 state.auxiliaryState.submitButtonTimeout = false
+
+                if (action.payload && action.payload.response && action.payload.response.data) {
+                    state.auxiliaryState.serverError = action.payload.response.data.error ? action.payload.response.data.error : action.payload.message
+                } else {
+                    state.auxiliaryState.serverError = 'There was an error, please try again later.'
+                }
             })
     }
 })

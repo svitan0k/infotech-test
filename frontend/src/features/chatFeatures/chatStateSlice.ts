@@ -10,7 +10,7 @@ export interface chatSliceInitState {
     },
     openChat: {
         username: string,
-        chat: { [key: string]: string }[] | {},
+        chat: { [key: string]: string }[] | [{}],
     },
     decryptMessageStatus: { [key: string]: string },
     decryptMessageText: { [key: string]: string },
@@ -96,7 +96,11 @@ export const chatActionSlice: Slice = createSlice({
             state.blockedStatus = ''
         },
 
-        openChat: (state, action) => {
+        clearBlockedState: (state) => {
+            state.blockedStatus = ''
+        },
+
+        openChatAction: (state, action) => {
             state.blockedStatus = ''
             state.openChat = { chat: action.payload.chat, username: action.payload.username }
             if (action.payload.username in state.inboxStatus) {
@@ -104,8 +108,9 @@ export const chatActionSlice: Slice = createSlice({
             }
         },
 
+
         blockChatFromOption: (state, action) => {
-            state.openChat = { username: '', chat: {} }
+            state.openChat = { username: '', chat: [{}] }
 
             state.chats = {
                 ...state.chats,
@@ -306,7 +311,7 @@ export const chatActionSlice: Slice = createSlice({
             })
             .addCase(sendMessage.rejected, (state, action) => {
                 if (action.payload && action.payload.reason === 'blocked') {
-                    state.openChat = { username: '', chat: {} }
+                    state.openChat = { username: '', chat: [{}] }
 
                     state.chats = {
                         ...state.chats,
@@ -333,8 +338,9 @@ export const chatActionSlice: Slice = createSlice({
 
 
 export const {
-    openChat,
+    openChatAction,
     clearChatState,
+    clearBlockedState,
     blockChatFromOption,
     handleReceivedOpenChat,
     handleReceivedNewMessage,

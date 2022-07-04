@@ -92,7 +92,6 @@ class HelpersClass extends HelpersTS {
 
 
     decryptMorseCode(message: string): Promise<string> {
-        console.log("this is the message", message)
         return new Promise((resolve) => {
             resolve(message.split('   ').map((word) => word.split(' ').map((symbol) => {
                 return Object.keys(this.morseCode).find((key) => this.morseCode[key] === symbol)

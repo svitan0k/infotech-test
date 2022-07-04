@@ -10,7 +10,7 @@ export function registerHandler(registerData: dataObj, registerCallback: cbFunct
     const acceptMethods: string[] = ['post']
 
     if (acceptMethods.indexOf(registerData.method.toLowerCase()) > -1) {
-        // validating request input
+        // might be validation overkill, but still, validating request input
         const username = typeof (registerData.payload.username) === 'string' ? registerData.payload.username : false
         const password = typeof (registerData.payload.password) === 'string' ? registerData.payload.password : false
         const role = typeof (registerData.payload.role) === 'string' ? registerData.payload.role : false
@@ -26,14 +26,12 @@ export function registerHandler(registerData: dataObj, registerCallback: cbFunct
                         if (error) {
                             registerCallback(500, { error: error })
                         } else {
-                            // result.rows[0].role is misssing I think
-                            console.log(result.rows[0].role)
                             const newUserObject = createToken(result.rows[0].id, result.rows[0].username, result.rows[0].role)
                             if (typeof (newUserObject) === 'object') {
                                 writeDBToken(newUserObject)
                                 registerCallback(200, { result: newUserObject })
                             } else {
-                                registerCallback(500, {error: "Error while generating access token"})
+                                registerCallback(500, { error: "Error while generating access token" })
                             }
                         }
                     })
