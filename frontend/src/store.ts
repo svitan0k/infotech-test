@@ -64,15 +64,15 @@ const preloadedState = {
 
     contactsSlice: {
         contacts: {
-            addedContacts: {
-                0: 'Sam',
-                1: 'Alex',
-                2: 'Ivan',
-                3: 'Masha',
-            },
-            blockedContacts: {
-                0: 'someone'
-            }
+            addedContacts: [
+                'Sam',
+                'Alex',
+                'Ivan',
+                'Masha',
+            ],
+            blockedContacts: [
+                'someone'
+            ]
         },
         contactsError: '',
 

@@ -1,9 +1,9 @@
-import React, { FormEvent, useEffect, useState } from 'react'
+import React, { FormEvent, useEffect, useRef, useState } from 'react'
 import { Button, IconButton, List, ListItem, ListItemText, ListSubheader, Menu, MenuItem, TextField, } from '@mui/material'
 import { MoreVert, Send, Visibility, VisibilityOff, } from '@mui/icons-material'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '../store'
-import { addContact, blockContact } from '../features/contactsFeatures/contactsStateSlice'
+import { addContact, blockContact, removeContact } from '../features/contactsFeatures/contactsStateSlice'
 import { decryptMessage, sendMessage } from '../features/chatFeatures/chatStateSlice'
 import LoadingButton from '@mui/lab/LoadingButton';
 
@@ -13,6 +13,7 @@ const ChatView: React.FC = () => {
 
     const dispatch = useDispatch<any>()
 
+    const { contacts } = useSelector((state: RootState) => state.contactsSlice)
     const { openChat, decryptMessageStatus, decryptMessageText, blockedStatus } = useSelector((state: RootState) => state.chatsSlice)
     const { userInfo } = useSelector((state: RootState) => state.userInfo)
 
@@ -20,8 +21,9 @@ const ChatView: React.FC = () => {
     const [messageBody, setMessageBody] = useState<string>('')
     const [decryptedMessages, setDecryptedMessages] = useState<{ [key: string]: string }>({})
     const [tempMessageText, setTempMessageText] = useState<{ [key: string]: string }>({})
-    const [blockedMessage, setBlockedMessage] = useState<string>('')
     const optionsOpen = Boolean(openMoreOptions)
+    const inputFocus = useRef<HTMLInputElement | null>(null)
+
 
     const handleOptions = (currentTarget: any) => {
         setOpenMoreOptions(currentTarget)
@@ -34,9 +36,17 @@ const ChatView: React.FC = () => {
         setOpenMoreOptions(null)
     }
 
+    const handleRemoveContact = () => {
+        if (userInfo.username) {
+            dispatch(removeContact({ owner: userInfo.username, contact: openChat.username }))
+        }
+        setOpenMoreOptions(null)
+    }
+
     const handleBlock = () => {
         if (userInfo.username) {
             dispatch(blockContact({ owner: userInfo.username, contact: openChat.username }))
+            setOpenMoreOptions(null)
         }
     }
 
@@ -45,6 +55,8 @@ const ChatView: React.FC = () => {
         if (userInfo.user_id && userInfo.username) {
             dispatch(sendMessage({ sender: { id: userInfo.user_id.toString(), username: userInfo.username }, recipient: openChat.username, message: messageBody, isNewChat: false }))
         }
+        setMessageBody('')
+        inputFocus.current?.focus()
     }
 
     function shouldDecrypt(message: string, messageIndex: string) {
@@ -65,9 +77,13 @@ const ChatView: React.FC = () => {
         setTempMessageText({ ...decryptMessageText })
     }, [decryptMessageText])
 
-    // useEffect(() => {
-    //     setBlockedMessage(blockedStatus)
-    // }, [blockedStatus])
+
+    useEffect(() => {
+        const chatBodyElem = document.getElementById('chat-body') as HTMLUListElement
+        if (chatBodyElem) {
+            chatBodyElem.scrollTop = chatBodyElem.scrollHeight
+        }
+    }, [openChat])
 
     return (
         <>
@@ -84,37 +100,53 @@ const ChatView: React.FC = () => {
                             <ListItem sx={{
                                 textAlign: "center",
                             }}>
-                                <ListItemText secondary={`You have no on-going chats`} />
+                                <ListItemText secondary={`${blockedStatus}`} secondaryTypographyProps={{
+                                    fontSize: "1rem",
+                                    color: "#87b7e7",
+                                }} />
                             </ListItem>
                         </List> :
                         <>
-                            <List subheader={
-                                <ListSubheader>
-                                    Your chat with {openChat.username}
-                                    <IconButton
-                                        onClick={(e) => {
-                                            handleOptions(e.currentTarget)
-                                        }}
-                                        sx={{
-                                            position: 'relative',
-                                        }}
-                                    >
-                                        <MoreVert fontSize='small' />
-                                    </IconButton>
-                                    <Menu
-                                        anchorEl={openMoreOptions}
-                                        open={optionsOpen}
-                                        onClose={() => setOpenMoreOptions(null)}
-                                        MenuListProps={{
-                                            'aria-labelledby': 'basic-button',
-                                        }}
-                                    >
-                                        <MenuItem onClick={() => handleAddContact()}>Add To Contacts</MenuItem>
-                                        <MenuItem onClick={() => handleBlock()}>Block</MenuItem>
-                                    </Menu>
+                            <List sx={{
+                                overflow: "auto",
+                                maxHeight: "50vh",
+                                marginBottom: "30px",
+                            }}
+                                id={'chat-body'}
+                                subheader={
+                                    <ListSubheader>
+                                        Your chat with {openChat.username}
+                                        <IconButton
+                                            onClick={(e) => {
+                                                handleOptions(e.currentTarget)
+                                            }}
+                                            sx={{
+                                                position: 'relative',
+                                            }}
+                                        >
+                                            <MoreVert fontSize='small' />
+                                        </IconButton>
+                                        <Menu
+                                            anchorEl={openMoreOptions}
+                                            open={optionsOpen}
+                                            onClose={() => setOpenMoreOptions(null)}
+                                            MenuListProps={{
+                                                'aria-labelledby': 'basic-button',
+                                            }}
+                                        >
+                                            <MenuItem onClick={
+                                                contacts.addedContacts.includes(openChat.username) ?
+                                                    () => handleRemoveContact()
+                                                    : () => handleAddContact()}>
+                                                {contacts.addedContacts.includes(openChat.username) ?
+                                                    "Remove from contacts"
+                                                    : "Add to contacts"}
+                                            </MenuItem>
+                                            <MenuItem onClick={() => handleBlock()}>Block</MenuItem>
+                                        </Menu>
 
-                                </ListSubheader>
-                            }>
+                                    </ListSubheader>
+                                }>
                                 {openChat.chat.map((message: { [key: string]: string }, index: string) => { // .chat[Object.keys(openChat.chat).at(0)]
                                     return (
                                         <ListItem key={index} sx={{
@@ -159,6 +191,7 @@ const ChatView: React.FC = () => {
                                     value={messageBody}
                                     onChange={(e) => setMessageBody(e.target.value)}
                                     InputLabelProps={{ required: false }}
+                                    inputRef={inputFocus}
                                     required
                                 />
                                 <Button

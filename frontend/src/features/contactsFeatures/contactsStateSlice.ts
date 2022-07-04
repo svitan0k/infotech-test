@@ -1,16 +1,13 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios, { AxiosError } from "axios";
 import { v4 as uuid } from 'uuid';
+import { blockChatFromOption, sendMessage } from "../chatFeatures/chatStateSlice";
 
 
 export interface contactsSliceInitState {
     contacts: {
-        addedContacts: {
-            [key: number]: string
-        },
-        blockedContacts: {
-            [key: number]: string
-        }
+        addedContacts: string[],
+        blockedContacts: string[],
     },
     contactsError: string,
 }
@@ -89,6 +86,8 @@ export const blockContact = createAsyncThunk('contactsSlice/blockContact', async
             'contact': contact,
         }, config)
 
+        thunkAPI.dispatch(blockChatFromOption({sender: owner, recipient: contact}))
+
         return data
     } catch (error: any) {
         return thunkAPI.rejectWithValue({ error })
@@ -119,18 +118,21 @@ export const unblockContact = createAsyncThunk('contactsSlice/unblockContact', a
 
 export const contactsSlice = createSlice({
     name: 'contactsSlice',
-    initialState: JSON.parse(sessionStorage.getItem('contacts')!) || {
-        contacts: {
-            addedContacts: {},
-            blockedContacts: {},
+    initialState: {
+        contacts: (sessionStorage.getItem('contacts') && JSON.parse(sessionStorage.getItem('contacts')!)) || {
+            addedContacts: [],
+            blockedContacts: [],
         },
         contactsError: '',
     } as contactsSliceInitState,
     reducers: {
         clearContactsState: (state) => {
             state.contacts = {
-                addedContacts: {},
-                blockedContacts: {},
+                addedContacts: [],
+                blockedContacts: [],
+            }
+            if (sessionStorage.getItem('contacts')) {
+                sessionStorage.removeItem('contacts')
             }
         },
     },
@@ -140,8 +142,8 @@ export const contactsSlice = createSlice({
             .addCase(getContacts.fulfilled, (state, action) => {
                 console.log(action.payload)
                 sessionStorage.setItem('contacts', JSON.stringify({addedContacts: action.payload.addedContacts, blockedContacts: action.payload.blockedContacts}))
-                state.contacts.addedContacts = {...action.payload.addedContacts}
-                state.contacts.blockedContacts = {...action.payload.blockedContacts}
+                state.contacts.addedContacts = [...action.payload.addedContacts]
+                state.contacts.blockedContacts = [...action.payload.blockedContacts]
             })
             .addCase(getContacts.rejected, (state, action) => {
                 if (action.payload) {
@@ -149,24 +151,33 @@ export const contactsSlice = createSlice({
                 }
             })
             .addCase(addContact.fulfilled, (state, action) => {
-                state.contacts.addedContacts[uuid()] = action.payload.addedContact
+                state.contacts.addedContacts = [...state.contacts.addedContacts, action.payload.addedContact]
+
+                // persist to sessionStorage
+                sessionStorage.setItem('contacts', JSON.stringify({addedContacts: [...state.contacts.addedContacts], blockedContacts: [...state.contacts.blockedContacts]}))
             })
+            
             .addCase(removeContact.fulfilled, (state, action) => {
-                delete state.contacts.addedContacts[+(Object.keys(state.contacts.addedContacts).find((key) => {
-                    return state.contacts.addedContacts[+key] === action.payload.removedContact ? key : null
-                }))!]
+                state.contacts.addedContacts = state.contacts.addedContacts.filter((contact) => contact !== action.payload.removedContact)
+
+                // persist to sessionStorage
+                sessionStorage.setItem('contacts', JSON.stringify({addedContacts: [...state.contacts.addedContacts], blockedContacts: [...state.contacts.blockedContacts]}))
             })
+            
             .addCase(blockContact.fulfilled, (state, action) => {
-                delete state.contacts.addedContacts[+(Object.keys(state.contacts.addedContacts).find((key) => {
-                    return state.contacts.addedContacts[+key] === action.payload.blockedContact ? key : null
-                }))!]
-                state.contacts.blockedContacts[uuid()] = action.payload.blockedContact
+                state.contacts.addedContacts = state.contacts.addedContacts.filter((contact) => contact !== action.payload.blockedContact)
+                state.contacts.blockedContacts = [...state.contacts.blockedContacts, action.payload.blockedContact]
+
+                // persist to sessionStorage
+                sessionStorage.setItem('contacts', JSON.stringify({addedContacts: [...state.contacts.addedContacts], blockedContacts: [...state.contacts.blockedContacts]}))
             })
+
             .addCase(unblockContact.fulfilled, (state, action) => {
-                delete state.contacts.blockedContacts[+(Object.keys(state.contacts.blockedContacts).find((key) => {
-                    return state.contacts.blockedContacts[+key] === action.payload.unblockedContact ? key : null
-                }))!]
-                state.contacts.addedContacts[uuid()] = action.payload.unblockedContact
+                state.contacts.blockedContacts = state.contacts.blockedContacts.filter((contact) => contact !== action.payload.unblockedContact)
+                state.contacts.addedContacts = [...state.contacts.addedContacts, action.payload.unblockedContact]
+
+                // persist to sessionStorage
+                sessionStorage.setItem('contacts', JSON.stringify({addedContacts: [...state.contacts.addedContacts], blockedContacts: [...state.contacts.blockedContacts]}))
             })
     }
 })

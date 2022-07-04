@@ -74,10 +74,10 @@ const ContactsView: React.FC<ContactsViewTS> = ({ handleOptionChange }) => {
         setOpenMoreBlockedOptions(null)
     }
 
-
+    console.log(contacts)
     return (
         <>
-            {Object.keys(contacts.addedContacts).length + Object.keys(contacts.blockedContacts).length > 0 ?
+            {contacts && (contacts.addedContacts.length + contacts.blockedContacts.length) > 0 ?
                 <>
                     <Menu
                         anchorEl={openMoreAddedOptions}

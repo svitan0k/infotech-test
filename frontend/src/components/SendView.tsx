@@ -1,6 +1,6 @@
 import { Send } from '@mui/icons-material'
 import { Button, InputAdornment, TextField } from '@mui/material'
-import React, { FormEvent, useContext, useEffect, useState } from 'react'
+import React, { FormEvent, useContext, useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { sendMessage } from '../features/chatFeatures/chatStateSlice'
 import { RootState } from '../store'
@@ -24,17 +24,19 @@ const SendView: React.FC<SendViewTS> = ({ handleOptionChange }) => {
     const [recipient, setRecipient] = useState<string>(passedUsername ? passedUsername : '')
     const [messageBody, setMessageBody] = useState<string>('')
 
+    const focusRef = useRef<HTMLInputElement | null>(null)
+
     const handleSend = async (e: FormEvent) => {
         e.preventDefault()
         handleOptionChange('chat')
         if (userInfo.user_id && userInfo.username) {
             console.log("This is recipient:", recipient, "newchat?:", ((openChat.username && openChat.username === recipient) || chats[recipient]))
-            if ((openChat.username && openChat.username === recipient) || chats[recipient]) {
+            if ((openChat.username && openChat.username === recipient.trim()) || chats[recipient.trim()]) {
                 console.log('sending to known chat')
-                dispatch(sendMessage({ sender: {id: userInfo.user_id.toString(), username: userInfo.username}, recipient: recipient, message: messageBody, isNewChat: false }))
+                dispatch(sendMessage({ sender: { id: userInfo.user_id.toString(), username: userInfo.username }, recipient: recipient.trim(), message: messageBody, isNewChat: false }))
             } else {
                 console.log('sending to new chat')
-                dispatch(sendMessage({ sender: {id: userInfo.user_id.toString(), username: userInfo.username}, recipient: recipient, message: messageBody, isNewChat: true }))
+                dispatch(sendMessage({ sender: { id: userInfo.user_id.toString(), username: userInfo.username }, recipient: recipient.trim(), message: messageBody, isNewChat: true }))
             }
         } else {
             navigate('/login')
@@ -43,7 +45,8 @@ const SendView: React.FC<SendViewTS> = ({ handleOptionChange }) => {
 
     useEffect(() => {
         setPassedUsername('')
-    }, [])
+        focusRef.current?.focus()
+    }, [passedUsername])
 
     return (
         <form
@@ -65,6 +68,7 @@ const SendView: React.FC<SendViewTS> = ({ handleOptionChange }) => {
                 InputProps={{
                     startAdornment: <InputAdornment position="start">@</InputAdornment>,
                 }}
+                inputRef={focusRef}
                 required
                 focused
             />

@@ -10,7 +10,7 @@ export interface chatSliceInitState {
     },
     openChat: {
         username: string,
-        chat: { [key: string]: string }[] | null,
+        chat: { [key: string]: string }[] | {},
     },
     decryptMessageStatus: { [key: string]: string },
     decryptMessageText: { [key: string]: string },
@@ -106,6 +106,17 @@ export const chatActionSlice: Slice = createSlice({
             }
         },
 
+        blockChatFromOption: (state, action) => {
+            state.openChat = { username: '', chat: {} }
+
+            state.chats = {
+                ...state.chats,
+                [action.payload.recipient]: [
+                    { [action.payload.sender]: 'This chat is blocked', time: moment().format('HH:mm') }
+                ],
+            }
+            state.blockedStatus = `This chat is blocked by either you or by ${action.payload.recipient}`
+        },
 
         handleReceivedOpenChat: (state, action) => {
             if (state.chats[action.payload.sender]) { // if chat with this sender already exists
@@ -319,8 +330,8 @@ export const chatActionSlice: Slice = createSlice({
 
                         state.openChat = {
                             ...state.openChat,
-
-                            chat: [...state.openChat.chat!, { // add message to the already existing *OPEN* chat
+                            ///@ts-ignore 
+                            chat: [...state.openChat.chat, { // add message to the already existing *OPEN* chat
                                 [action.payload.sender.username]: convertToMorseCode(action.payload.message),
                                 time: moment().format('HH:mm'),
                             }],
@@ -329,18 +340,17 @@ export const chatActionSlice: Slice = createSlice({
 
                 }
             })
-            .addCase(sendMessage.rejected, (state, { payload, meta }) => {
-                if (payload && payload.reason) {
-                    state.openChat = { username: '', chat: null }
+            .addCase(sendMessage.rejected, (state, action) => {
+                if (action.payload && action.payload.reason === 'blocked') {
+                    state.openChat = { username: '', chat: {} }
 
                     state.chats = {
                         ...state.chats,
-
-                        [meta.arg.recipient]: [
-                            { [payload.sender]: 'This chat is blocked', time: payload.time }
+                        [action.meta.arg.recipient]: [
+                            { [action.meta.arg.sender.username]: 'This chat is blocked', time: moment().format('HH:mm') }
                         ],
                     }
-                    state.blockedStatus = `This chat is blocked either by you or ${payload.recipient}`
+                    state.blockedStatus = `This chat is blocked either by you or by ${action.payload.recipient}`
                 }
             })
             .addCase(decryptMessage.pending, (state, { meta }) => {
@@ -361,6 +371,7 @@ export const chatActionSlice: Slice = createSlice({
 export const {
     openChat,
     clearChatState,
+    blockChatFromOption,
     handleReceivedOpenChat,
     handleReceivedNewMessage,
 } = chatActionSlice.actions

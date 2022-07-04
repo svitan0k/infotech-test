@@ -22,7 +22,7 @@ const Homepage: React.FC = () => {
 	const dispatch = useDispatch<any>()
 
 	const { userInfo } = useSelector((state: RootState) => state.userInfo)
-	const { inboxStatus } = useSelector((state: RootState) => state.chatsSlice)
+	const { inboxStatus, openChat, blockedStatus } = useSelector((state: RootState) => state.chatsSlice)
 
 	const [currentView, setCurrentView] = useState<string>('inbox')
 
@@ -115,12 +115,13 @@ const Homepage: React.FC = () => {
 					startIcon={Object.keys(inboxStatus).length > 0 && <NotificationsActive />}
 					id="inbox"
 					onClick={() => handleOptionChange('inbox')}
-					sx={currentView === 'inbox' ? {backgroundColor: "#87b7e722"} : {}}
-					>Inbox</Button>
+					sx={currentView === 'inbox' ? { backgroundColor: "#87b7e722" } : {}}
+				>Inbox</Button>
 				<Button
 					id="send"
 					onClick={() => handleOptionChange('send')}>Send</Button>
 				<Button
+					disabled={blockedStatus || !openChat.username ? true : false}
 					id="chat"
 					onClick={() => handleOptionChange('chat')}>Chat</Button>
 				<Button
