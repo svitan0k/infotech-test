@@ -15,8 +15,8 @@ const SendView: React.FC<SendViewTS> = ({ handleOptionChange }) => {
 
     const navigate = useNavigate()
     const dispatch = useDispatch<any>()
-    const { passedUsername, setPassedUsername } = useContext(shareContext)
 
+    const { passedUsername, setPassedUsername } = useContext(shareContext)
 
     const { userInfo } = useSelector((state: RootState) => state.userInfo)
     const { chats, openChat } = useSelector((state: RootState) => state.chatsSlice)
@@ -30,12 +30,9 @@ const SendView: React.FC<SendViewTS> = ({ handleOptionChange }) => {
         e.preventDefault()
         handleOptionChange('chat')
         if (userInfo.user_id && userInfo.username) {
-            console.log("This is recipient:", recipient, "newchat?:", ((openChat.username && openChat.username === recipient) || chats[recipient]))
             if ((openChat.username && openChat.username === recipient.trim()) || chats[recipient.trim()]) {
-                console.log('sending to known chat')
                 dispatch(sendMessage({ sender: { id: userInfo.user_id.toString(), username: userInfo.username }, recipient: recipient.trim(), message: messageBody, isNewChat: false }))
             } else {
-                console.log('sending to new chat')
                 dispatch(sendMessage({ sender: { id: userInfo.user_id.toString(), username: userInfo.username }, recipient: recipient.trim(), message: messageBody, isNewChat: true }))
             }
         } else {

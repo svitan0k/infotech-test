@@ -40,15 +40,11 @@ const LoginPage: React.FC = () => {
     };
 
     const handleCloseSnackbar = (event: React.SyntheticEvent | Event, reason?: string) => {
-        console.log(reason)
         setServerError('')
     }
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault()
-
-        // setSubmitBtnTimeout(true)
-
         dispatch(loginUser({ username: username, password: password }))
     }
 

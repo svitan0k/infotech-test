@@ -1,7 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import axios, { AxiosError } from "axios";
-import { v4 as uuid } from 'uuid';
-import { blockChatFromOption, sendMessage } from "../chatFeatures/chatStateSlice";
+import { blockChatFromOption, } from "../chatFeatures/chatStateSlice";
 
 
 export interface contactsSliceInitState {
@@ -18,7 +17,7 @@ export const getContacts = createAsyncThunk<any, any, {rejectValue: AxiosError}>
     const config = {
         headers: {
             "Content-type": "application/json",
-            // token validation,
+            // add token validation,
         }
     }
 
@@ -37,7 +36,7 @@ export const addContact = createAsyncThunk('contactsSlice/addContact', async (ar
     const config = {
         headers: {
             "Content-type": "application/json",
-            // token validation
+            // add token validation
         }
     }
 
@@ -140,7 +139,6 @@ export const contactsSlice = createSlice({
     extraReducers: (builder) => {
         builder
             .addCase(getContacts.fulfilled, (state, action) => {
-                console.log(action.payload)
                 sessionStorage.setItem('contacts', JSON.stringify({addedContacts: action.payload.addedContacts, blockedContacts: action.payload.blockedContacts}))
                 state.contacts.addedContacts = [...action.payload.addedContacts]
                 state.contacts.blockedContacts = [...action.payload.blockedContacts]

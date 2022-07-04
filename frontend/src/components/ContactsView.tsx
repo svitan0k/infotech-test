@@ -16,23 +16,26 @@ interface ContactsViewTS {
 const ContactsView: React.FC<ContactsViewTS> = ({ handleOptionChange }) => {
 
     const dispatch = useDispatch<any>()
+
     const { passedUsername, setPassedUsername } = useContext(shareContext)
+
     const { contacts } = useSelector((state: RootState) => state.contactsSlice)
     const { userInfo } = useSelector((state: RootState) => state.userInfo)
 
     const [openMoreAddedOptions, setOpenMoreAddedOptions] = useState<HTMLElement | null>(null)
     const [openMoreBlockedOptions, setOpenMoreBlockedOptions] = useState<HTMLElement | null>(null)
     const [optionsOnId, setOptionsOnId] = useState<number | null>(null)
+
     const addedOptionsOpen = Boolean(openMoreAddedOptions)
     const blockedOptionsOpen = Boolean(openMoreBlockedOptions)
 
 
     useEffect(() => {
         if (passedUsername) {
-            console.log(passedUsername)
             handleOptionChange('send')
         }
     }, [passedUsername, handleOptionChange])
+
 
 
     // for added contacts
@@ -74,7 +77,6 @@ const ContactsView: React.FC<ContactsViewTS> = ({ handleOptionChange }) => {
         setOpenMoreBlockedOptions(null)
     }
 
-    console.log(contacts)
     return (
         <>
             {contacts && (contacts.addedContacts.length + contacts.blockedContacts.length) > 0 ?
@@ -127,7 +129,6 @@ const ContactsView: React.FC<ContactsViewTS> = ({ handleOptionChange }) => {
                                             <ListItemText secondary={`You have no added contacts`} />
                                         </ListItem>
                                         : Object.keys(contacts[contactType]).map((contact, index) => {
-                                            console.log(contact)
                                             return (
                                                 <ListItem key={`added${index}`}>
                                                     <ListItemText primary={`${contacts.addedContacts[+contact]}`} />

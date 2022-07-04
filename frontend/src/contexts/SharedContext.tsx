@@ -1,15 +1,11 @@
-import { useEffect, useState } from "react"
-import { createContext } from "react"
-import { useDispatch, useSelector } from "react-redux"
-import { handleReceivedNewMessage, handleReceivedOpenChat } from "../features/chatFeatures/chatStateSlice"
-import { userLogout } from "../features/userInfoFeatures/userInfoStateSlice"
-import { RootState } from "../store"
-import socket from "../webSocketsUtil/webSocketServer"
+import { createContext, useState } from "react"
 
 interface ContextTS {
     children: React.ReactNode
 }
 
+
+// client-side morse converter
 const morseCode: { [key: string]: string } = {
     "A": ".-",
     "B": "-...",
@@ -69,9 +65,6 @@ const morseCode: { [key: string]: string } = {
 }
 
 export function convertToMorseCode(message: string) {
-    console.log(message.toUpperCase().split(' ').map((word) => word.split('').map((symbol) => {
-        return morseCode[symbol] ? morseCode[symbol] : symbol
-    }).join(' ')).join("   "))
     return message.toUpperCase().split(' ').map((word) => word.split('').map((symbol) => {
         return morseCode[symbol] ? morseCode[symbol] : symbol
     }).join(' ')).join("   ")
@@ -79,9 +72,6 @@ export function convertToMorseCode(message: string) {
 
 
 export function decryptMorseCode(message: string): string {
-    // console.log("Decrypted:", message.split('   ').map((word) => word.split(' ').map((symbol) => {
-    //     return Object.keys(morseCode).find((key) => morseCode[key] === symbol)
-    // }).join('')).join(' '))
     return message.split('   ').map((word) => word.split(' ').map((symbol) => {
         return Object.keys(morseCode).find((key) => morseCode[key] === symbol)
     }).join('')).join(' ');

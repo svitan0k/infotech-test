@@ -40,7 +40,7 @@ export const decryptMessage = createAsyncThunk('chatActionSlice/decryptMessage',
 })
 
 export const sendMessage = createAsyncThunk<any, any, { rejectValue: { reason: string, [key: string]: any } }>('chatActionSlice/sendMessage', async (args: { sender: { id: string, username: string }, recipient: string, message: string, isNewChat: boolean }, thunkAPI) => {
-    // const { sender, recipient, message } = args
+
     const { sender, recipient, isNewChat, } = args
 
     const config = {
@@ -61,7 +61,6 @@ export const sendMessage = createAsyncThunk<any, any, { rejectValue: { reason: s
                 return args
             } catch (error) {
                 alert('error')
-                console.log(error)
                 return thunkAPI.rejectWithValue({ error: error, reason: 'error' })
             }
         } else {
@@ -70,7 +69,6 @@ export const sendMessage = createAsyncThunk<any, any, { rejectValue: { reason: s
                 return args
             } catch (error) {
                 alert('error')
-                console.log(error)
                 return thunkAPI.rejectWithValue({ error: error, reason: 'error' })
             }
         }
@@ -182,36 +180,6 @@ export const chatActionSlice: Slice = createSlice({
 
         handleReceivedNewMessage: (state, action) => {
 
-            // if (state.openChat.username && state.openChat.username !== action.payload.sender) { // the chat is opened, but not with this sender -- just add to general chat
-            //     state.chats = {
-            //         ...state.chats,
-
-            //         [action.payload.sender]: [
-            //             ...state.chats[action.payload.sender],
-            //             { [action.payload.sender]: action.payload.message, time: action.payload.time }
-            //         ],
-            //     }
-            // } else {
-            //     console.log(...state.chats[action.payload.sender])
-            //     state.chats = {
-            //         ...state.chats,
-
-            //         [action.payload.sender]: [
-            //             ...state.chats[action.payload.sender],
-            //             { [action.payload.sender]: action.payload.message, time: action.payload.time }
-            //         ],
-            //     }
-
-            //     state.openChat = {
-            //         ...state.openChat,
-
-            //         chat: [...state.openChat.chat, {
-            //             [action.payload.sender]: action.payload.message,
-            //             time: action.payload.time,
-            //         }],
-            //     }
-            // }                                    // OLD ABOVE
-
             if (state.chats[action.payload.sender]) { // if chat with this sender already exists
                 if (state.openChat.username && state.openChat.username !== action.payload.sender) { // the chat is opened, but not with this sender
                     state.inboxStatus[action.payload.sender] = "active"
@@ -311,11 +279,7 @@ export const chatActionSlice: Slice = createSlice({
                         state.openChat = {
                             username: action.payload.recipient, // change the header of the currently opened chat to this new username 
 
-                            chat: [...state.chats[action.payload.recipient], // replace all messages in the currently opened chat with the messages of a different chat (identified by the username of the recipient) 
-                                // { // add new message to the "new" *OPEN* chat
-                                //     [action.payload.sender.username]: convertToMorseCode(action.payload.message),
-                                //     time: moment().format('HH:mm'),
-                                // }],
+                            chat: [...state.chats[action.payload.recipient], // replace all messages in the currently opened chat with the messages of a different chat (identified by the username of the recipient)
                             ]
                         }
                     } else { // "chat with this user already exists and is the currently opened chat"

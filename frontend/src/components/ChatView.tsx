@@ -13,14 +13,15 @@ const ChatView: React.FC = () => {
 
     const dispatch = useDispatch<any>()
 
-    const { contacts } = useSelector((state: RootState) => state.contactsSlice)
     const { openChat, decryptMessageStatus, decryptMessageText, blockedStatus } = useSelector((state: RootState) => state.chatsSlice)
+    const { contacts } = useSelector((state: RootState) => state.contactsSlice)
     const { userInfo } = useSelector((state: RootState) => state.userInfo)
 
     const [openMoreOptions, setOpenMoreOptions] = useState<null | HTMLElement>(null)
     const [messageBody, setMessageBody] = useState<string>('')
     const [decryptedMessages, setDecryptedMessages] = useState<{ [key: string]: string }>({})
     const [tempMessageText, setTempMessageText] = useState<{ [key: string]: string }>({})
+
     const optionsOpen = Boolean(openMoreOptions)
     const inputFocus = useRef<HTMLInputElement | null>(null)
 
@@ -66,7 +67,6 @@ const ChatView: React.FC = () => {
                 return obj
             }, {} as { [key: string]: string }))
         } else {
-            // redux logic starts here
             dispatch(decryptMessage({ message, messageIndex }))
             setDecryptedMessages({ ...decryptedMessages, [messageIndex]: 'pending' })
         }
@@ -147,7 +147,7 @@ const ChatView: React.FC = () => {
 
                                     </ListSubheader>
                                 }>
-                                {openChat.chat.map((message: { [key: string]: string }, index: string) => { // .chat[Object.keys(openChat.chat).at(0)]
+                                {openChat.chat.map((message: { [key: string]: string }, index: string) => {
                                     return (
                                         <ListItem key={index} sx={{
                                             borderLeft: '1px solid #87b7e7'
@@ -159,15 +159,11 @@ const ChatView: React.FC = () => {
                                                     <LoadingButton loading={decryptMessageStatus[index] === 'pending' ? true : false} variant="outlined" onClick={() => shouldDecrypt(message[Object.keys(message)[0]], index.toString())}>
                                                         <VisibilityOff />
                                                     </LoadingButton>
-                                                    // <IconButton onClick={() => shouldDecrypt(message[Object.keys(message)[0]], index)}>
-                                                    // </IconButton>
                                                     :
                                                     // dencrypt
                                                     <LoadingButton loading={decryptMessageStatus[index] === 'pending' ? true : false} variant="outlined" onClick={() => shouldDecrypt(message[Object.keys(message)[0]], index.toString())}>
                                                         <Visibility />
                                                     </LoadingButton>
-                                                // <IconButton onClick={() => shouldDecrypt(message[Object.keys(message)[0]], index)}>
-                                                // </IconButton>
                                                 : null}
                                         </ListItem>
                                     )

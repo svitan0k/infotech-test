@@ -17,7 +17,6 @@ const InboxView: React.FC<InboxViewTS> = ({ handleOptionChange }) => {
     const { chats, inboxStatus } = useSelector((state: RootState) => state.chatsSlice)
 
     const handleOpenChat = (chatObj: object, username: string) => {
-        console.log(chatObj)
         handleOptionChange('chat')
         dispatch(openChat({ chat: chatObj, username: username, }))
     }
@@ -34,9 +33,8 @@ const InboxView: React.FC<InboxViewTS> = ({ handleOptionChange }) => {
                     return (
                         <ListItem key={index}>
                             <ListItemButton onClick={() => handleOpenChat(chats[chat], chat)}>
-                                {/* Sometimes my genius... it's almost frightening */}
                                 {inboxStatus[chat] ?
-                                    <>
+                                    <>                                                  {/* Sometimes my genius... it's almost frightening */}
                                         <ListItemText primary={`${chat}`} secondary={`${chats[chat].at(-1)[Object.keys(chats[chat].at(-1))[0]]}`} />
                                         <ListItemIcon>
                                             <NotificationsActive />

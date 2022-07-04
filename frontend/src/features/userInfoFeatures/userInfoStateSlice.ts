@@ -103,6 +103,7 @@ export const userInfoSlice = createSlice({
             state.userInfo.username = null
             state.userInfo.token = null
             state.userInfo.role = null
+            state.auxiliaryState.submitButtonTimeout = false
         },
 
         connectToWebSocket: (state) => {
@@ -132,12 +133,13 @@ export const userInfoSlice = createSlice({
                 state.userInfo.role = action.payload.result.role
             })
             .addCase(loginUser.rejected, (state, action) => {
-                console.log(action.payload)
                 /// @ts-ignore -- too much headache trying to type AxiosError which can only be of two types(my custom "error" sent from the server and axios "message" error).
                 state.auxiliaryState.serverError = action.payload.response.data.error ? action.payload.response.data.error : action.payload.message
                 state.auxiliaryState.submitButtonTimeout = false
             })
 
+
+            
             // user register
             .addCase(registerUser.pending, (state) => {
                 state.auxiliaryState.serverError = ''
@@ -155,7 +157,6 @@ export const userInfoSlice = createSlice({
                 state.userInfo.role = action.payload.result.role
             })
             .addCase(registerUser.rejected, (state, action) => {
-                console.log(action.payload)
                 /// @ts-ignore -- too much headache trying to type AxiosError which can only be of two types(my custom "error" sent from the server and axios "message" error).
                 state.auxiliaryState.serverError = action.payload.response.data.error ? action.payload.response.data.error : action.payload.message
                 state.auxiliaryState.submitButtonTimeout = false

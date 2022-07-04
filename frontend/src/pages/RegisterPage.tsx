@@ -70,7 +70,6 @@ const RegisterPage: React.FC = () => {
     };
 
     const handleCloseSnackbar = (event: React.SyntheticEvent | Event, reason?: string) => {
-        console.log(reason)
         setServerError('')
     }
 

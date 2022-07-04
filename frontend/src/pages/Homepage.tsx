@@ -8,7 +8,7 @@ import ContactsView from '../components/ContactsView'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from '../store'
 import { connectToWebSocket, userLogout } from '../features/userInfoFeatures/userInfoStateSlice'
-import { AccountCircleOutlined, Logout, NotificationsActive } from '@mui/icons-material'
+import { AccountCircle, Logout, NotificationsActive } from '@mui/icons-material'
 import { clearChatState } from '../features/chatFeatures/chatStateSlice'
 import { clearContactsState } from '../features/contactsFeatures/contactsStateSlice'
 import socket from '../webSocketsUtil/webSocketServer'
@@ -34,10 +34,7 @@ const Homepage: React.FC = () => {
 
 	useEffect(() => {
 		if (userInfo.user_id) {
-
 			dispatch(connectToWebSocket())
-
-			console.log('inside useEffect')
 		}
 	}, [])
 
@@ -45,7 +42,6 @@ const Homepage: React.FC = () => {
 		dispatch(userLogout())
 		socket.disconnect()
 		socket.off('message')
-		console.log(socket.listeners('message'))
 		dispatch(clearChatState(''))
 		dispatch(clearContactsState())
 	}
@@ -90,7 +86,7 @@ const Homepage: React.FC = () => {
 					justifyContent: "center",
 					gap: "0.5rem",
 				}}>
-					<AccountCircleOutlined />
+					<AccountCircle />
 					{userInfo.username}
 				</Typography>
 				<Divider orientation="vertical" flexItem sx={{
