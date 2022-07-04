@@ -20,7 +20,6 @@ export interface dataObj {
 http.createServer((req: IncomingMessage, res: ServerResponse) => {
     Server(req, res)
 }).listen(currentEnv.httpPort, () => {
-    console.log(`Listening on port ${currentEnv.httpPort}`)
 })
 
 
@@ -37,7 +36,6 @@ const Server = (req: IncomingMessage, res: ServerResponse) => {
 
         let buffer = ''
 
-        // console.log("And here is a pathname:", requestURL.pathname, "and ", req.url, 'also ', requestURL.pathname.split('/')[1])
 
         if (requestURL.pathname.split('/')[1] !== 'api') {
             serveFile(requestURL.pathname, '../../frontend/build/', req, res)
@@ -83,6 +81,8 @@ const apiRouter: { [key: string]: Function } = {
     'api/users/register': Handlers.register,
     'api/users/login': Handlers.login,
     'api/chat/decryptMessage': Handlers.decryptMessage,
+    'api/chat/checkBlock': Handlers.checkBlockedUsers,
+    'api/contacts/get': Handlers.getContacts,
     'api/contacts/add': Handlers.addContact,
     'api/contacts/remove': Handlers.removeContact,
     'api/contacts/block': Handlers.blockContact,
@@ -109,16 +109,12 @@ const socketServer = new io.Server(currentEnv.webSocketPort as number, {
 
 // connection validation - makes sure that only registered and logged in users are able to send messages
 socketServer.use(async (socket, next) => {
-    // console.log(`${socket.id} connected to socket server`)
-    // console.log('auth: ', socket.handshake.auth)
 
     const username = socket.handshake.auth.client.username
     const client_id = socket.handshake.auth.client.user_id
     const token = socket.handshake.auth.client.token
-    console.log("THIS IS A TOKEN", token)
 
     const isUserValid = await validateUser(token)
-    console.log("SOULD RETURN", isUserValid)
 
     if (!isUserValid) {
         return next(new Error('invalid_token'))
@@ -139,18 +135,12 @@ socketServer.on('connection', async (socket) => {
     /// @ts-ignore
     const token = socket.handshake.auth.client.token // this isn't really needed
     /// @ts-ignore
-    // console.log(socket.client_id, socket.username)
 
-    console.log('connected')
-    // console.log('this is socket', socket.id)
-    // console.log('this is list of sockets:')
     for (let [id, socket]  of socketServer.of('/').sockets) {
-        // console.log(id, socket.id, socket.client_id)
     } // remove the above later
 
     // if token was validated
     socket.on('send-new-open-message', ({ recipient, message }: newMessageProps) => {
-        console.log('sending new chat to', recipient)
         // const connectionObj: userObj = {
         //     socketId: socket.id,
         //     sender: sender,
@@ -165,21 +155,17 @@ socketServer.on('connection', async (socket) => {
 
         // socket.to(user.room).emit('send-message', formattedMessage(sender, message))
         for (let [id, currentConnection]  of socketServer.of('/').sockets) {
-            // console.log(currentConnection.username)
             if (currentConnection.username === recipient) { // if no user is found in the sockets list, return an error saying that "user is currenctly offline and will not recieve your message(beacuse we do not store messages in db)"
-                console.log(`\n\nI'm sending this message as ${socket.client_id} to ${currentConnection.client_id}, who is ${currentConnection.username} or ${currentConnection.id}`)
-                console.log("THIS IS FORMATTED MESSAGE:", formattedMessage(socket.username, message, false)
+                // if the recipient is not blocking this sender
                 socket.to(currentConnection.id).emit('message', formattedMessage(socket.username, message, true))
             }
         }    
     })
 
     socket.on('send-new-message', ({recipient, message}: newMessageProps) => {
-        console.log('sending new message to', recipient)
         for (let [id, currentConnection]  of socketServer.of('/').sockets) {
             if (currentConnection.username === recipient) { // if no user is found in the sockets list, return an error saying that "user is currenctly offline and will not recieve your message(beacuse we do not store messages in db)"
-                console.log(`\n\nsending message as ${socket.client_id} to ${currentConnection.client_id}, who is ${currentConnection.username} or ${currentConnection.id}`)
-                console.log("THIS IS FORMATTED MESSAGE:", formattedMessage(socket.username, message, false))
+                // if the recipient is not blocking this sender
                 socket.to(currentConnection.id).emit('message', formattedMessage(socket.username, message, false))
             }
         }   
@@ -190,7 +176,6 @@ socketServer.on('connection', async (socket) => {
 
 
     // socket.on('send-message', (message) => {
-    //     console.log('sd')
     // })
 })
 

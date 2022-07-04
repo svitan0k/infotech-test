@@ -56,24 +56,33 @@ const preloadedState = {
         },
 
         decryptMessageStatus: {},
+        decryptMessageText: {},
         inboxStatus: {},
+        blockedStatus: '',
 
     } as chatSliceInitState,
 
     contactsSlice: {
         contacts: {
-            0: 'Sam',
-            1: 'Alex',
-            2: 'Ivan',
-            3: 'Masha',
-        }
+            addedContacts: {
+                0: 'Sam',
+                1: 'Alex',
+                2: 'Ivan',
+                3: 'Masha',
+            },
+            blockedContacts: {
+                0: 'someone'
+            }
+        },
+        contactsError: '',
+
     } as contactsSliceInitState,
 }
 
 const store = configureStore({
     reducer,
     // preloadedState,
-    middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(webSocketMiddleware)
+    middleware: (getDefaultMiddleware) => getDefaultMiddleware({serializableCheck: false}).concat(webSocketMiddleware)
 })
 
 export type RootState = ReturnType<typeof store.getState>

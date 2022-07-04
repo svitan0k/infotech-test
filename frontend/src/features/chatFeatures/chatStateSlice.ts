@@ -10,10 +10,12 @@ export interface chatSliceInitState {
     },
     openChat: {
         username: string,
-        chat: { [key: string]: string }[],
+        chat: { [key: string]: string }[] | null,
     },
     decryptMessageStatus: { [key: string]: string },
-    inboxStatus: {[key: string]: string},
+    decryptMessageText: { [key: string]: string },
+    inboxStatus: { [key: string]: string },
+    blockedStatus: string,
 }
 
 
@@ -37,29 +39,40 @@ export const decryptMessage = createAsyncThunk('chatActionSlice/decryptMessage',
     }
 })
 
-export const sendMessage = createAsyncThunk('chatActionSlice/sendMessage', async (args: { sender: { id: string, username: string }, recipient: string, message: string, isNewChat: boolean }, thunkAPI) => {
+export const sendMessage = createAsyncThunk<any, any, { rejectValue: { reason: string, [key: string]: any } }>('chatActionSlice/sendMessage', async (args: { sender: { id: string, username: string }, recipient: string, message: string, isNewChat: boolean }, thunkAPI) => {
     // const { sender, recipient, message } = args
-    const { isNewChat } = args
+    const { sender, recipient, isNewChat, } = args
 
-    console.log(isNewChat)
-
-    if (isNewChat) {
-        try {
-            socket.emit('send-new-open-message', args)
-            return args
-        } catch (error) {
-            alert('error')
-            console.log(error)
-            return thunkAPI.rejectWithValue(error)
+    const config = {
+        headers: {
+            "Content-type": "application/json",
+            // add access token
         }
+    }
+
+    const { data } = await axios.get(`api/chat/checkBlock?sender=${sender.username}&recipient=${recipient}`, config)
+
+    if (data.blocked) {
+        return thunkAPI.rejectWithValue({ recipient: recipient, reason: 'blocked' })
     } else {
-        try {
-            socket.emit('send-new-message', args)
-            return args
-        } catch (error) {
-            alert('error')
-            console.log(error)
-            return thunkAPI.rejectWithValue(error)
+        if (isNewChat) {
+            try {
+                socket.emit('send-new-open-message', args)
+                return args
+            } catch (error) {
+                alert('error')
+                console.log(error)
+                return thunkAPI.rejectWithValue({ error: error, reason: 'error' })
+            }
+        } else {
+            try {
+                socket.emit('send-new-message', args)
+                return args
+            } catch (error) {
+                alert('error')
+                console.log(error)
+                return thunkAPI.rejectWithValue({ error: error, reason: 'error' })
+            }
         }
     }
 })
@@ -72,7 +85,9 @@ export const chatActionSlice: Slice = createSlice({
         chats: {},
         openChat: {},
         decryptMessageStatus: {},
+        decryptMessageText: {},
         inboxStatus: {},
+        blockedStatus: '',
     } as chatSliceInitState,
     reducers: {
         clearChatState: (state) => {
@@ -80,9 +95,11 @@ export const chatActionSlice: Slice = createSlice({
             state.openChat = {}
             state.decryptMessageStatus = {}
             state.inboxStatus = {}
+            state.blockedStatus = ''
         },
-        
+
         openChat: (state, action) => {
+            state.blockedStatus = ''
             state.openChat = { chat: action.payload.chat, username: action.payload.username }
             if (action.payload.username in state.inboxStatus) {
                 delete state.inboxStatus[action.payload.username]
@@ -303,7 +320,7 @@ export const chatActionSlice: Slice = createSlice({
                         state.openChat = {
                             ...state.openChat,
 
-                            chat: [...state.openChat.chat, { // add message to the already existing *OPEN* chat
+                            chat: [...state.openChat.chat!, { // add message to the already existing *OPEN* chat
                                 [action.payload.sender.username]: convertToMorseCode(action.payload.message),
                                 time: moment().format('HH:mm'),
                             }],
@@ -312,15 +329,30 @@ export const chatActionSlice: Slice = createSlice({
 
                 }
             })
-            .addCase(decryptMessage.pending, (state, {meta}) => {
-                state.decryptMessageStatus = {...state.decryptMessageStatus, [meta.arg.messageIndex]: 'pending'}
+            .addCase(sendMessage.rejected, (state, { payload, meta }) => {
+                if (payload && payload.reason) {
+                    state.openChat = { username: '', chat: null }
+
+                    state.chats = {
+                        ...state.chats,
+
+                        [meta.arg.recipient]: [
+                            { [payload.sender]: 'This chat is blocked', time: payload.time }
+                        ],
+                    }
+                    state.blockedStatus = `This chat is blocked either by you or ${payload.recipient}`
+                }
+            })
+            .addCase(decryptMessage.pending, (state, { meta }) => {
+                state.decryptMessageStatus = { ...state.decryptMessageStatus, [meta.arg.messageIndex]: 'pending' }
             })
             .addCase(decryptMessage.fulfilled, (state, action) => {
-                state.decryptMessageStatus = {...state.decryptMessageStatus, [action.meta.arg.messageIndex]: action.payload.message}
+                state.decryptMessageStatus = { ...state.decryptMessageStatus, [action.meta.arg.messageIndex]: '' }
+                state.decryptMessageText = { ...state.decryptMessageText, [action.meta.arg.messageIndex]: action.payload.message }
             })
             .addCase(decryptMessage.rejected, (state, action) => {
                 /// @ts-ignore
-                state.decryptMessageStatus = {...state.decryptMessageStatus, [action.meta.arg.messageIndex]: action.payload.error.response.data.error ? action.payload.error.response.data.error : action.payload.error.message}
+                state.decryptMessageStatus = { ...state.decryptMessageStatus, [action.meta.arg.messageIndex]: action.payload.error.response.data.error ? action.payload.error.response.data.error : action.payload.error.message }
             })
     }
 })

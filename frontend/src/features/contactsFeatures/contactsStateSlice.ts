@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
+import { v4 as uuid } from 'uuid';
 
 
 export interface contactsSliceInitState {
@@ -10,15 +11,36 @@ export interface contactsSliceInitState {
         blockedContacts: {
             [key: number]: string
         }
-    }
+    },
+    contactsError: string,
 }
 
-export const addContact = createAsyncThunk('', async (args: { owner: string, contact: string }, thunkAPI) => {
+export const getContacts = createAsyncThunk<any, any, {rejectValue: AxiosError}>('contactsSlice/getContacts', async (args: {username: string}, thunkAPI) => {
+    const { username } = args
+
+    const config = {
+        headers: {
+            "Content-type": "application/json",
+            // token validation,
+        }
+    }
+
+    try {
+        const { data } = await axios.get(`api/contacts/get?owner=${username}`, config)
+
+        return data
+    } catch (error: any) {
+        return thunkAPI.rejectWithValue( error )
+    }
+})
+
+export const addContact = createAsyncThunk('contactsSlice/addContact', async (args: { owner: string, contact: string }, thunkAPI) => {
     const { owner, contact } = args
 
     const config = {
         headers: {
             "Content-type": "application/json",
+            // token validation
         }
     }
 
@@ -34,7 +56,7 @@ export const addContact = createAsyncThunk('', async (args: { owner: string, con
     }
 })
 
-export const removeContact = createAsyncThunk('', async (args: { owner: string, contact: string }, thunkAPI) => {
+export const removeContact = createAsyncThunk('contactsSlice/removeContact', async (args: { owner: string, contact: string }, thunkAPI) => {
     const { owner, contact } = args
 
     const config = {
@@ -44,10 +66,7 @@ export const removeContact = createAsyncThunk('', async (args: { owner: string, 
     }
 
     try {
-        const { data } = await axios.post('api/contacts/remove', {
-            'owner': owner,
-            'contact': contact,
-        }, config)
+        const { data } = await axios.delete(`api/contacts/remove?owner=${owner}&contact=${contact}`, config)
 
         return data
     } catch (error: any) {
@@ -55,7 +74,7 @@ export const removeContact = createAsyncThunk('', async (args: { owner: string, 
     }
 })
 
-export const blockContact = createAsyncThunk('', async (args: { owner: string, contact: string }, thunkAPI) => {
+export const blockContact = createAsyncThunk('contactsSlice/blockContact', async (args: { owner: string, contact: string }, thunkAPI) => {
     const { owner, contact } = args
 
     const config = {
@@ -76,7 +95,7 @@ export const blockContact = createAsyncThunk('', async (args: { owner: string, c
     }
 })
 
-export const unblockContact = createAsyncThunk('', async (args: { owner: string, contact: string }, thunkAPI) => {
+export const unblockContact = createAsyncThunk('contactsSlice/unblockContact', async (args: { owner: string, contact: string }, thunkAPI) => {
     const { owner, contact } = args
 
     const config = {
@@ -100,11 +119,12 @@ export const unblockContact = createAsyncThunk('', async (args: { owner: string,
 
 export const contactsSlice = createSlice({
     name: 'contactsSlice',
-    initialState: {
+    initialState: JSON.parse(sessionStorage.getItem('contacts')!) || {
         contacts: {
             addedContacts: {},
             blockedContacts: {},
         },
+        contactsError: '',
     } as contactsSliceInitState,
     reducers: {
         clearContactsState: (state) => {
@@ -113,30 +133,40 @@ export const contactsSlice = createSlice({
                 blockedContacts: {},
             }
         },
-
-        // addContact: (state, action) => {
-        //     state.contacts[Object.keys(state.contacts).length] = action.payload.newContact
-        // },
-
-        // removeContact: (state, action) => {
-        //     console.log(state.contacts[action.payload.optionsOnId])
-        //     delete state.contacts[action.payload.optionsOnId]
-        // },
     },
 
     extraReducers: (builder) => {
         builder
+            .addCase(getContacts.fulfilled, (state, action) => {
+                console.log(action.payload)
+                sessionStorage.setItem('contacts', JSON.stringify({addedContacts: action.payload.addedContacts, blockedContacts: action.payload.blockedContacts}))
+                state.contacts.addedContacts = {...action.payload.addedContacts}
+                state.contacts.blockedContacts = {...action.payload.blockedContacts}
+            })
+            .addCase(getContacts.rejected, (state, action) => {
+                if (action.payload) {
+                    state.contactsError = action.payload.message
+                }
+            })
             .addCase(addContact.fulfilled, (state, action) => {
-                state.contacts.addedContacts[Object.keys(state.contacts).length] = action.payload.addedContact
+                state.contacts.addedContacts[uuid()] = action.payload.addedContact
             })
             .addCase(removeContact.fulfilled, (state, action) => {
-                delete state.contacts.addedContacts[action.payload.removedContact]
+                delete state.contacts.addedContacts[+(Object.keys(state.contacts.addedContacts).find((key) => {
+                    return state.contacts.addedContacts[+key] === action.payload.removedContact ? key : null
+                }))!]
             })
             .addCase(blockContact.fulfilled, (state, action) => {
-                state.contacts.blockedContacts[Object.keys(state.contacts).length] = action.payload.blockedContact
+                delete state.contacts.addedContacts[+(Object.keys(state.contacts.addedContacts).find((key) => {
+                    return state.contacts.addedContacts[+key] === action.payload.blockedContact ? key : null
+                }))!]
+                state.contacts.blockedContacts[uuid()] = action.payload.blockedContact
             })
             .addCase(unblockContact.fulfilled, (state, action) => {
-                delete state.contacts.blockedContacts[action.payload.unblockedContact]
+                delete state.contacts.blockedContacts[+(Object.keys(state.contacts.blockedContacts).find((key) => {
+                    return state.contacts.blockedContacts[+key] === action.payload.unblockedContact ? key : null
+                }))!]
+                state.contacts.addedContacts[uuid()] = action.payload.unblockedContact
             })
     }
 })

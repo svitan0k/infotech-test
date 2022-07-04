@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import socket from "../../webSocketsUtil/webSocketServer";
+import { getContacts } from "../contactsFeatures/contactsStateSlice";
 
 
 export interface userResult {
@@ -24,7 +25,7 @@ export interface userInfoInitState {
     }
 }
 
-export const loginUser = createAsyncThunk('userInfoSlice/loginUser', async (args: { username: string, password: string }, thunkAPI) => {
+export const loginUser = createAsyncThunk<any, any, {rejectValue: AxiosError}>('userInfoSlice/loginUser', async (args: { username: string, password: string }, thunkAPI) => {
     const { username, password } = args
 
     const config = {
@@ -35,13 +36,15 @@ export const loginUser = createAsyncThunk('userInfoSlice/loginUser', async (args
 
     try {
         const { data } = await axios.post('api/users/login', {
-            'username': username,
+            'username': username.trim(),
             'password': password,
         }, config) as { data: { result: userResult } }
 
+        thunkAPI.dispatch(getContacts({username}))
+
         return data
     } catch (error: any) {
-        return thunkAPI.rejectWithValue(error)
+        return thunkAPI.rejectWithValue( error )
     }
 })
 
@@ -62,7 +65,7 @@ export const registerUser = createAsyncThunk('userInfoSlice/registerUser', async
 
     try {
         const { data } = await axios.post('api/users/register', {
-            'username': username,
+            'username': username.trim(),
             'password': password,
             'role': role,
         }, config)
@@ -110,6 +113,10 @@ export const userInfoSlice = createSlice({
     extraReducers: (builder) => {
         builder
             // user login
+            .addCase(loginUser.pending, (state) => {
+                state.auxiliaryState.serverError = ''
+                state.auxiliaryState.submitButtonTimeout = true
+            })
             .addCase(loginUser.fulfilled, (state, action) => {
                 state.auxiliaryState.submitButtonTimeout = false
 
@@ -127,11 +134,15 @@ export const userInfoSlice = createSlice({
             .addCase(loginUser.rejected, (state, action) => {
                 console.log(action.payload)
                 /// @ts-ignore -- too much headache trying to type AxiosError which can only be of two types(my custom "error" sent from the server and axios "message" error).
-                state.auxiliaryState.serverError = action.payload.error.response.data.error ? action.payload.error.response.data.error : action.payload.error.message
+                state.auxiliaryState.serverError = action.payload.response.data.error ? action.payload.response.data.error : action.payload.message
                 state.auxiliaryState.submitButtonTimeout = false
             })
 
             // user register
+            .addCase(registerUser.pending, (state) => {
+                state.auxiliaryState.serverError = ''
+                state.auxiliaryState.submitButtonTimeout = true
+            })
             .addCase(registerUser.fulfilled, (state, action) => {
                 sessionStorage.setItem('user_id', action.payload.result.user_id)
                 sessionStorage.setItem('username', action.payload.result.username)
@@ -146,7 +157,7 @@ export const userInfoSlice = createSlice({
             .addCase(registerUser.rejected, (state, action) => {
                 console.log(action.payload)
                 /// @ts-ignore -- too much headache trying to type AxiosError which can only be of two types(my custom "error" sent from the server and axios "message" error).
-                state.auxiliaryState.serverError = action.payload.error.response.data.error ? action.payload.error.response.data.error : action.payload.error.message
+                state.auxiliaryState.serverError = action.payload.response.data.error ? action.payload.response.data.error : action.payload.message
                 state.auxiliaryState.submitButtonTimeout = false
             })
     }

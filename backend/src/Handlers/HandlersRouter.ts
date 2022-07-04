@@ -9,6 +9,8 @@ import { addContactHandler } from "./contactsActions/addContactHandler"
 import { removeContactHandler } from "./contactsActions/removeContactHandler"
 import { blockContactHandler } from "./contactsActions/blockContactHandler"
 import { unblockContactHandler } from "./contactsActions/unblockContactHandler"
+import { getContactsHandler } from "./contactsActions/getContactsHandler"
+import { checkBlockedStatus } from "../websocketUtils/users"
 
 // TODO
 // Customize all the error handling (right now it just returns {error: error})
@@ -38,9 +40,12 @@ abstract class HandlersTS {
     abstract decryptMessage(message: dataObj, decryptMessageCallback: cbFunction): void
 
     // contacts
-    abstract addContact(username: dataObj, addContactCallback: cbFunction): void
-    abstract removeContact(username: dataObj, removeContactCallback: cbFunction): void
-    abstract blockContact(username: dataObj, blockContactCallback: cbFunction): void
+    abstract getContacts(usernames: dataObj, getContactsCallback: cbFunction): void
+    abstract addContact(usernames: dataObj, addContactCallback: cbFunction): void
+    abstract removeContact(usernames: dataObj, removeContactCallback: cbFunction): void
+    abstract blockContact(usernames: dataObj, blockContactCallback: cbFunction): void
+    abstract unblockContact(usernames: dataObj, unblockContactCallback: cbFunction): void
+    abstract checkBlockedUsers(usernmaes: dataObj, checkBlockedUsersCallback: cbFunction): void
 
     // Request not found 
     abstract notfound(notFoundData: dataObj, callback: cbFunction): void
@@ -67,14 +72,22 @@ class HandlersClass extends HandlersTS {
         decryptMessageHandler(message.payload.message, decryptMessageCallback)
     }
 
+    checkBlockedUsers(usernames: dataObj, checkBlockedUsersCallback: cbFunction): void {
+        checkBlockedStatus({sender: usernames.queryParams.get('sender'), recipient: usernames.queryParams.get('recipient')}, checkBlockedUsersCallback)
+    }
+
 
     // contact handlers
+    getContacts(usernames: dataObj, getContactsCallback: cbFunction): void {
+        getContactsHandler(usernames.queryParams.get('owner'), getContactsCallback)
+    }
+
     addContact(usernames: dataObj, addContactCallback: cbFunction): void {
         addContactHandler(usernames.payload, addContactCallback)
     }
 
     removeContact(usernames: dataObj, removeContactCallback: cbFunction): void {
-        removeContactHandler(usernames.payload, removeContactCallback)
+        removeContactHandler({owner: usernames.queryParams.get('owner'), contact: usernames.queryParams.get('contact')}, removeContactCallback)
     }
 
     blockContact(usernames: dataObj, blockContactCallback: cbFunction): void {

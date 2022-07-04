@@ -15,7 +15,7 @@ const LoginPage: React.FC = () => {
     const navigate = useNavigate()
     const dispatch = useDispatch<any>()
 
-    const { userInfo } = useSelector((state: RootState) => state.userInfo)
+    const { userInfo, auxiliaryState } = useSelector((state: RootState) => state.userInfo)
 
     const [username, setUsername] = useState<string>('')
     const [password, setPassword] = useState<string>('')
@@ -47,11 +47,18 @@ const LoginPage: React.FC = () => {
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault()
 
-        setSubmitBtnTimeout(true)
+        // setSubmitBtnTimeout(true)
 
         dispatch(loginUser({ username: username, password: password }))
     }
 
+    useEffect(() => {
+        setSubmitBtnTimeout(Boolean(auxiliaryState.submitButtonTimeout))
+    }, [auxiliaryState.submitButtonTimeout])
+
+    useEffect(() => {
+        setServerError(auxiliaryState.serverError.toString())
+    }, [auxiliaryState.serverError])
 
     const snakbarAction = (
         <>

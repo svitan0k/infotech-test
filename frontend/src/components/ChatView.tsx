@@ -13,13 +13,14 @@ const ChatView: React.FC = () => {
 
     const dispatch = useDispatch<any>()
 
-    const { openChat, decryptMessageStatus } = useSelector((state: RootState) => state.chatsSlice)
+    const { openChat, decryptMessageStatus, decryptMessageText, blockedStatus } = useSelector((state: RootState) => state.chatsSlice)
     const { userInfo } = useSelector((state: RootState) => state.userInfo)
 
     const [openMoreOptions, setOpenMoreOptions] = useState<null | HTMLElement>(null)
     const [messageBody, setMessageBody] = useState<string>('')
     const [decryptedMessages, setDecryptedMessages] = useState<{ [key: string]: string }>({})
-    const [tempMessageStatus, setTempMessageStatus] = useState<{ [key: string]: string }>({})
+    const [tempMessageText, setTempMessageText] = useState<{ [key: string]: string }>({})
+    const [blockedMessage, setBlockedMessage] = useState<string>('')
     const optionsOpen = Boolean(openMoreOptions)
 
     const handleOptions = (currentTarget: any) => {
@@ -46,14 +47,6 @@ const ChatView: React.FC = () => {
         }
     }
 
-    // function shouldDecrypt(message: string, messageIndex: string) {
-    //     if (decryptedMessages.includes(messageIndex)) {
-    //         setDecryptedMessages(decryptedMessages.filter((message) => message !== messageIndex))
-    //     } else {
-    //         setDecryptedMessages([...decryptedMessages, messageIndex])
-    //     }
-    // }
-
     function shouldDecrypt(message: string, messageIndex: string) {
         if (messageIndex in decryptedMessages) {
             setDecryptedMessages(Object.keys(decryptedMessages).filter((key) => key !== messageIndex).reduce((obj, key: string) => {
@@ -69,90 +62,110 @@ const ChatView: React.FC = () => {
     }
 
     useEffect(() => {
-        setTempMessageStatus({...decryptMessageStatus})
-    }, [decryptMessageStatus])
+        setTempMessageText({ ...decryptMessageText })
+    }, [decryptMessageText])
+
+    // useEffect(() => {
+    //     setBlockedMessage(blockedStatus)
+    // }, [blockedStatus])
 
     return (
         <>
             {Object.keys(openChat).length > 0 ?
                 <>
-                    <List subheader={
-                        <ListSubheader>
-                            Your chat with {openChat.username}
-                            <IconButton
-                                onClick={(e) => {
-                                    handleOptions(e.currentTarget)
-                                }}
-                                sx={{
-                                    position: 'relative',
-                                }}
-                            >
-                                <MoreVert fontSize='small' />
-                            </IconButton>
-                            <Menu
-                                anchorEl={openMoreOptions}
-                                open={optionsOpen}
-                                onClose={() => setOpenMoreOptions(null)}
-                                MenuListProps={{
-                                    'aria-labelledby': 'basic-button',
-                                }}
-                            >
-                                <MenuItem onClick={() => handleAddContact()}>Add To Contacts</MenuItem>
-                                <MenuItem onClick={() => handleBlock()}>Block</MenuItem>
-                            </Menu>
-
-                        </ListSubheader>
-                    }>
-                        {openChat.chat.map((message: { [key: string]: string }, index: string) => { // .chat[Object.keys(openChat.chat).at(0)]
-                            return (
-                                <ListItem key={index} sx={{
-                                    borderLeft: '1px solid #87b7e7'
-                                }}>
-                                    <ListItemText primary={`${Object.keys(message)[0]}: ${index in decryptedMessages ? tempMessageStatus[index] !== 'pending' && tempMessageStatus[index] : message[Object.keys(message)[0]]}`} secondary={`${message.time}`} />
-                                    {userInfo.role === "newbie" ?
-                                        index in decryptedMessages ?
-                                            // ecrypt
-                                            <LoadingButton loading={decryptMessageStatus[index] === 'pending' ? true : false} variant="outlined" onClick={() => shouldDecrypt(message[Object.keys(message)[0]], index.toString())}>
-                                                <VisibilityOff />
-                                            </LoadingButton>
-                                            // <IconButton onClick={() => shouldDecrypt(message[Object.keys(message)[0]], index)}>
-                                            // </IconButton>
-                                            :
-                                            // dencrypt
-                                            <LoadingButton loading={decryptMessageStatus[index] === 'pending' ? true : false} variant="outlined" onClick={() => shouldDecrypt(message[Object.keys(message)[0]], index.toString())}>
-                                                <Visibility />
-                                            </LoadingButton>
-                                        // <IconButton onClick={() => shouldDecrypt(message[Object.keys(message)[0]], index)}>
-                                        // </IconButton>
-                                        : null}
-                                </ListItem>
-                            )
-                        })}
-                    </List>
-                    <form
-                        onSubmit={(e) => handleSend(e)}
-                        style={{
+                    {blockedStatus ?
+                        <List sx={{
+                            width: "100%",
                             display: "flex",
                             flexFlow: "column",
-                            gap: "1rem",
-                            width: "85%",
-                            margin: "0 auto",
+                            justifyContent: "center",
+                            alignItems: "center",
                         }}>
-                        <TextField
-                            id="outlined-multiline-flexible"
-                            label="Message"
-                            variant="standard"
-                            multiline
-                            maxRows={20}
-                            value={messageBody}
-                            onChange={(e) => setMessageBody(e.target.value)}
-                            InputLabelProps={{ required: false }}
-                            required
-                        />
-                        <Button
-                            type='submit'
-                            endIcon={<Send />}>Send</Button>
-                    </form>
+                            <ListItem sx={{
+                                textAlign: "center",
+                            }}>
+                                <ListItemText secondary={`You have no on-going chats`} />
+                            </ListItem>
+                        </List> :
+                        <>
+                            <List subheader={
+                                <ListSubheader>
+                                    Your chat with {openChat.username}
+                                    <IconButton
+                                        onClick={(e) => {
+                                            handleOptions(e.currentTarget)
+                                        }}
+                                        sx={{
+                                            position: 'relative',
+                                        }}
+                                    >
+                                        <MoreVert fontSize='small' />
+                                    </IconButton>
+                                    <Menu
+                                        anchorEl={openMoreOptions}
+                                        open={optionsOpen}
+                                        onClose={() => setOpenMoreOptions(null)}
+                                        MenuListProps={{
+                                            'aria-labelledby': 'basic-button',
+                                        }}
+                                    >
+                                        <MenuItem onClick={() => handleAddContact()}>Add To Contacts</MenuItem>
+                                        <MenuItem onClick={() => handleBlock()}>Block</MenuItem>
+                                    </Menu>
+
+                                </ListSubheader>
+                            }>
+                                {openChat.chat.map((message: { [key: string]: string }, index: string) => { // .chat[Object.keys(openChat.chat).at(0)]
+                                    return (
+                                        <ListItem key={index} sx={{
+                                            borderLeft: '1px solid #87b7e7'
+                                        }}>
+                                            <ListItemText primary={`${Object.keys(message)[0]}: ${index in decryptedMessages && tempMessageText[index] ? tempMessageText[index] : message[Object.keys(message)[0]]}`} secondary={`${message.time}`} />
+                                            {userInfo.role === "newbie" ?
+                                                index in decryptedMessages ?
+                                                    // ecrypt
+                                                    <LoadingButton loading={decryptMessageStatus[index] === 'pending' ? true : false} variant="outlined" onClick={() => shouldDecrypt(message[Object.keys(message)[0]], index.toString())}>
+                                                        <VisibilityOff />
+                                                    </LoadingButton>
+                                                    // <IconButton onClick={() => shouldDecrypt(message[Object.keys(message)[0]], index)}>
+                                                    // </IconButton>
+                                                    :
+                                                    // dencrypt
+                                                    <LoadingButton loading={decryptMessageStatus[index] === 'pending' ? true : false} variant="outlined" onClick={() => shouldDecrypt(message[Object.keys(message)[0]], index.toString())}>
+                                                        <Visibility />
+                                                    </LoadingButton>
+                                                // <IconButton onClick={() => shouldDecrypt(message[Object.keys(message)[0]], index)}>
+                                                // </IconButton>
+                                                : null}
+                                        </ListItem>
+                                    )
+                                })}
+                            </List>
+                            <form
+                                onSubmit={(e) => handleSend(e)}
+                                style={{
+                                    display: "flex",
+                                    flexFlow: "column",
+                                    gap: "1rem",
+                                    width: "85%",
+                                    margin: "0 auto",
+                                }}>
+                                <TextField
+                                    id="outlined-multiline-flexible"
+                                    label="Message"
+                                    variant="standard"
+                                    multiline
+                                    maxRows={20}
+                                    value={messageBody}
+                                    onChange={(e) => setMessageBody(e.target.value)}
+                                    InputLabelProps={{ required: false }}
+                                    required
+                                />
+                                <Button
+                                    type='submit'
+                                    endIcon={<Send />}>Send</Button>
+                            </form>
+                        </>}
                 </>
                 :
                 <List sx={{

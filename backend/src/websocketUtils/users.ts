@@ -1,4 +1,4 @@
-import { pool } from "../Handlers/HandlersRouter"
+import { cbFunction, pool } from "../Handlers/HandlersRouter"
 import moment, { unix } from 'moment'
 
 
@@ -10,7 +10,7 @@ export type userObj = {
 
 type usersArray<T> = Array<T>
 
-const users: usersArray<userObj> = []
+// const users: usersArray<userObj> = []
 
 // export const connectUsers = ({socketId, sender, recipient}: userObj): userObj => {
 //     // if username is the same as before don't create a new connection but use the old one instead
@@ -46,6 +46,29 @@ export const validateUser = (token: string): Promise<Error | boolean> => {
     })
 }
 
-export const addUserConnection = (socketId: string) => {
-    users.push()
+// export const addUserConnection = (socketId: string) => {
+//     users.push()
+// }
+
+
+export const checkBlockedStatus = ({ sender, recipient }: { sender: string, recipient: string }, checkBlockedStatusCallback: cbFunction): void => { // Checks if either of the users has the other blocked. If one does, the chat is blocked for both:
+    pool.query(`SELECT username FROM users WHERE id = (SELECT contact FROM blockedContacts WHERE owner = (SELECT id FROM users WHERE username = '${recipient}')) UNION SELECT username FROM users WHERE id = (SELECT contact FROM blockedContacts WHERE owner = (SELECT id FROM users WHERE username = '${sender}'))`, (error, result) => { // ^^ terrific, but it works. 
+        if (error) {
+            return checkBlockedStatusCallback(500, { error: 'Error while looking up the recipient' })
+        } else {
+            if (result.rows.filter((blockedContact) => {
+                if (blockedContact.username === sender || blockedContact.username === recipient) {
+                    return blockedContact.username 
+                } else {
+                    return
+                }
+            }).length > 0) {
+                console.log('is blocked')
+                return checkBlockedStatusCallback(200, { blocked: true }) // chat is blocked
+            } else {
+                console.log('is not blocked')
+                return checkBlockedStatusCallback(200, { blocked: false }) // chat isn't blocked
+            }
+        }
+    })
 }
